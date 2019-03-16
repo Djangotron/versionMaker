@@ -1,4 +1,6 @@
-import json, os
+import json
+import os
+import datetime
 import handler
 
 
@@ -14,6 +16,8 @@ class WriteFile(handler.MetaDataCreate):
 
         self.meta_data_file_path = ""
 
+        self.current_time = str()
+
     def create_file(self):
 
         """
@@ -28,6 +32,9 @@ class WriteFile(handler.MetaDataCreate):
 
         # check the globals have been set
         self.validate_globals()
+
+        self.current_time = str(datetime.datetime.now())
+        self.global_data["date_time"] = self.current_time
 
         with open(self.meta_data_file_path, 'w') as outfile:
             json.dump(self.output_data, outfile)

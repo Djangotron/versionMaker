@@ -26,7 +26,7 @@ class MetaDataCreate(object):
         """
 
         self.global_data = [
-            "date",
+            "date_time",
             "message",
             "file_location",
             "relative_file_path",
