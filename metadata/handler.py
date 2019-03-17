@@ -1,4 +1,5 @@
 import json
+import datetime
 
 
 # setup default structure for meta data
@@ -43,9 +44,71 @@ class MetaDataCreate(object):
             "pre_roll_start_frame"
         ]
 
+        # global data
+        self.message = ""
+        self.file_location = ""
+        self.relative_file_path = ""
+        self.application = ""
+        self.applications = ["maya", "houdini"]
+        self.file_type = ""
+        self._publish_types = ["publish", "user"]
+        self.version_number = -1
+        self.publish_type = ""
+        self.long_name = ""
+
         self.output_data = dict()
 
         self.verbose = False
+
+    def set_globals(self):
+
+        """
+        Set all of the globals for a meta data file.
+        :return:
+        """
+
+        # set the publish time
+        self.output_data["date_time"] = str(datetime.datetime.now())
+
+        # message
+        if self.message == "":
+            raise AttributeError("Please set {0}".format(self.message))
+        self.output_data["message"] = self.message
+
+        # file_location
+        if self.file_location == "":
+            raise AttributeError("Please set {0}".format(self.file_location))
+        self.output_data["file_location"] = self.file_location
+
+        # relative_file_path
+        if self.relative_file_path == "":
+            raise AttributeError("Please set {0}".format(self.relative_file_path))
+        self.output_data["relative_file_path"] = self.relative_file_path
+
+        # application
+        if self.application == "":
+            raise AttributeError("Please set {0}".format(self.application))
+        self.output_data["application"] = self.application
+
+        # file type
+        if self.file_type == "":
+            raise AttributeError("Please set {0}".format(self.file_type))
+        self.output_data["file_type"] = self.file_type
+
+        # Version number
+        if self.version_number == "":
+            raise AttributeError("Please set {0}".format(self.version_number))
+        self.output_data["version_number"] = self.version_number
+
+        # Publish
+        if self.publish_type == "":
+            raise AttributeError("Please set {0}".format(self.publish_type))
+        self.output_data["publish_type"] = self.publish_type
+
+        # Name
+        if self.long_name == "":
+            raise AttributeError("Please set {0}".format(self.long_name))
+        self.output_data["long_name"] = self.long_name
 
     def validate_globals(self):
 

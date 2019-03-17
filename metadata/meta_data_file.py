@@ -34,7 +34,7 @@ class WriteFile(handler.MetaDataCreate):
         self.validate_globals()
 
         self.current_time = str(datetime.datetime.now())
-        self.global_data["date_time"] = self.current_time
+        self.__global_data["date_time"] = self.current_time
 
         with open(self.meta_data_file_path, 'w') as outfile:
             json.dump(self.output_data, outfile)
