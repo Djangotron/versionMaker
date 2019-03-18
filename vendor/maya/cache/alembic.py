@@ -288,6 +288,8 @@ class AlembicCache(object):
 
         self.alembic_verbose = False
 
+        self.has_been_called = False
+
     def __call__(self):
 
         """
@@ -295,9 +297,11 @@ class AlembicCache(object):
         :return:
         """
 
-        self.set_cache_geometries()
-        self.append_user_attributes()
-        self.set_export_command()
+        if not self.has_been_called:
+            self.set_cache_geometries()
+            self.append_user_attributes()
+            self.set_export_command()
+            self.has_been_called = True
 
     def append_user_attributes(self):
 

@@ -32,7 +32,7 @@ class MetaDataCreate(object):
             "file_location",
             "relative_file_path",
             "application",
-            "file_type",
+            "file_types",
             "version_number",
             "publish_type",
             "long_name"
@@ -50,7 +50,7 @@ class MetaDataCreate(object):
         self.relative_file_path = ""
         self.application = ""
         self.applications = ["maya", "houdini"]
-        self.file_type = ""
+        self.file_types = list()
         self._publish_types = ["publish", "user"]
         self.version_number = -1
         self.publish_type = ""
@@ -91,9 +91,9 @@ class MetaDataCreate(object):
         self.output_data["application"] = self.application
 
         # file type
-        if self.file_type == "":
-            raise AttributeError("Please set {0}".format(self.file_type))
-        self.output_data["file_type"] = self.file_type
+        if self.file_types == "":
+            raise AttributeError("Please set {0}".format(self.file_types))
+        self.output_data["file_types"] = self.file_types
 
         # Version number
         if self.version_number == "":
