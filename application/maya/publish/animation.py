@@ -1,8 +1,5 @@
-from maya import cmds
-import reference
 from ..cache import alembic
-from ....version.create_folder import Version
-from ....metadata import handler
+from version.folder import Version
 
 
 class ExportVersion(Version):
@@ -10,7 +7,7 @@ class ExportVersion(Version):
     def __init__(self):
 
         """
-        Child of the version.create.Version
+        Child of the version.export.Version
 
         Export an animation version many different uses.
 

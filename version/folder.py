@@ -1,6 +1,5 @@
 import os
-import utilities
-import read_write
+import version.utilities
 
 
 class Version(object):
@@ -81,7 +80,7 @@ class Version(object):
             version=self.folder_version_number
         )
 
-        self.folder_version_path = "{path}/{typeFolder}{version}".format(
+        self.folder_version_path = "{path}\\{typeFolder}{version}".format(
             path=self.path_to_versions,
             typeFolder=self.type_folder,
             version=self.folder_version_number
@@ -101,7 +100,7 @@ class Version(object):
 
         if not os.path.exists(self.folder_version_path):
             os.mkdir(self.folder_version_path)
-            read_write.set_file_read_only(self.folder_version_path)
+            version.utilities.set_file_read_only(self.folder_version_path)
 
         return self.folder_version_path
 
@@ -128,7 +127,7 @@ class Version(object):
         """
 
         folder_contents = os.listdir(self.path_to_versions)
-        self.folder_versions = utilities.natural_sort(text_list=folder_contents)
+        self.folder_versions = version.utilities.natural_sort(text_list=folder_contents)
 
         # test to make sure this is not a file
         for folder in self.folder_versions[::]:

@@ -9,8 +9,8 @@ class Hierarchy(object):
         """
 
         # Folder names
-        self.show_folder_location = "E:"
-        self.show_folder = "sol"
+        self.show_folder_location = ""
+        self.show_folder = ""
         self.show_folder_path = ""
 
         self.production_folder = "production"

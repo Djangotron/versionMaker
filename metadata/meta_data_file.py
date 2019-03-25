@@ -15,6 +15,7 @@ class WriteFile(handler.MetaDataCreate):
         super(WriteFile, self).__init__()
 
         self.meta_data_file_path = ""
+        self.meta_data_folder_path = ""
 
         self.current_time = str()
 
@@ -26,15 +27,15 @@ class WriteFile(handler.MetaDataCreate):
         """
 
         # check it exists
-        path_exists = os.path.exists(self.meta_data_file_path)
+        path_exists = os.path.exists(self.meta_data_folder_path)
         if not path_exists:
-            raise RuntimeError("File path: '{0}' does not exist.".format(self.meta_data_file_path))
+            raise RuntimeError("File path: '{0}' does not exist.".format(self.meta_data_folder_path))
+
+        self.current_time = str(datetime.datetime.now())
+        self.output_data["date_time"] = self.current_time
 
         # check the globals have been set
         self.validate_globals()
-
-        self.current_time = str(datetime.datetime.now())
-        self.__global_data["date_time"] = self.current_time
 
         with open(self.meta_data_file_path, 'w') as outfile:
             json.dump(self.output_data, outfile)

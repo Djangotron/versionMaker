@@ -1,4 +1,5 @@
 import re, os
+from stat import S_IREAD, S_IRGRP, S_IROTH
 
 
 def natural_sort(text_list=list()):
@@ -15,6 +16,20 @@ def natural_sort(text_list=list()):
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
 
     return sorted(text_list, key=alphanum_key)
+
+
+def set_file_read_only(file_path):
+
+    """
+    Sets the file to have read only status.
+
+    "https://stackoverflow.com/questions/28492685/change-file-to-read-only-mode-in-python"
+
+    :param string file_path: absolute file path to your file
+    :return:
+    """
+
+    os.chmod(file_path, S_IREAD | S_IRGRP | S_IROTH)
 
 
 def windows_path_conversion(path):

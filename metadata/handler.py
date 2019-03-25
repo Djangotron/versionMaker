@@ -82,7 +82,7 @@ class MetaDataCreate(object):
 
         # relative_file_path
         if self.relative_file_path == "":
-            raise AttributeError("Please set {0}".format(self.relative_file_path))
+            Warning("Please set {0}".format(self.relative_file_path))
         self.output_data["relative_file_path"] = self.relative_file_path
 
         # application
@@ -119,4 +119,4 @@ class MetaDataCreate(object):
 
         for _global in self.global_data:
             if _global not in self.output_data:
-                raise AttributeError("MetaData Global: '{0}' has not been set.".format(_global))
+                raise Warning("MetaData Global: '{0}' has not been set.".format(_global))
