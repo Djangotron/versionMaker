@@ -24,6 +24,7 @@ class MetaDataCreate(object):
         Sets useful information for the metadata output.  Contains a list of global attributes that will always be set.
 
         Allows for other possible attributes to be set here as well.
+        use the 'ancillary_data' dictionary to set data based on task / type
         """
 
         self.global_data = [
@@ -47,7 +48,6 @@ class MetaDataCreate(object):
         # global data
         self.message = ""
         self.file_location = ""
-        self.relative_file_path = ""
         self.application = ""
         self.applications = ["maya", "houdini"]
         self.file_types = list()
@@ -57,6 +57,7 @@ class MetaDataCreate(object):
         self.long_name = ""
 
         self.output_data = dict()
+        self.ancillary_data = dict()
 
         self.verbose = False
 
@@ -79,11 +80,6 @@ class MetaDataCreate(object):
         if self.file_location == "":
             raise AttributeError("Please set {0}".format(self.file_location))
         self.output_data["file_location"] = self.file_location
-
-        # relative_file_path
-        if self.relative_file_path == "":
-            Warning("Please set {0}".format(self.relative_file_path))
-        self.output_data["relative_file_path"] = self.relative_file_path
 
         # application
         if self.application == "":
@@ -109,6 +105,8 @@ class MetaDataCreate(object):
         if self.long_name == "":
             raise AttributeError("Please set {0}".format(self.long_name))
         self.output_data["long_name"] = self.long_name
+
+        self.output_data["ancillary_data"] = self.ancillary_data
 
     def validate_globals(self):
 

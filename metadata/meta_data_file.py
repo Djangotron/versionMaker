@@ -17,6 +17,8 @@ class WriteFile(handler.MetaDataCreate):
         self.meta_data_file_path = ""
         self.meta_data_folder_path = ""
 
+        self.meta_data_file_suffix = "vm_meta"
+
         self.current_time = str()
 
     def create_file(self):

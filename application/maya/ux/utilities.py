@@ -8,3 +8,5 @@ def getMayaWindow():
     apiUI.MQtUtil.mainWindow()
     ptr = apiUI.MQtUtil.mainWindow()
     return wrapInstance(long(ptr), QtCore.QObject)
+
+

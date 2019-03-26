@@ -1,8 +1,10 @@
-from ..cache import alembic
+import os
+from application.maya.cache import alembic
 from version.folder import Version
+import version.export.animation
 
 
-class ExportVersion(Version):
+class ExportVersion(version.export.animation.ExportAnimationVersion):
 
     def __init__(self):
 
@@ -21,12 +23,8 @@ class ExportVersion(Version):
 
         super(ExportVersion, self).__init__()
 
-        self.start_frame = 1001.0
-        self.end_frame = 1100.0
-
-        #
-        self.pre_roll_start_frame = None
-        self.post_roll_end_frame = None
+        # set the output meta data to maya
+        self.meta_data.application = "maya"
 
         self.alembic_class = None
 
@@ -41,6 +39,8 @@ class ExportVersion(Version):
         :return:
         """
 
+        self.meta_data.file_types = ["alembic"]
+
         # Write alembic cache
         self.alembic_class = alembic.AlembicCache()
 
@@ -51,7 +51,7 @@ class ExportVersion(Version):
         self.alembic_class.start_frame = self.start_frame
         self.alembic_class.end_frame = self.end_frame
 
-        self.alembic_class.file_path = self.output_file_path
+        self.alembic_class.file_path = "{0}.abc".format(self.output_file_path)
 
     def alembic_cache_write(self):
 
@@ -62,13 +62,6 @@ class ExportVersion(Version):
 
         self.alembic_class()
         self.alembic_class.export()
-
-    def meta_data(self):
-
-        """
-
-        :return:
-        """
 
     def offline_ma_setup(self, referenced_asset=None):
 
