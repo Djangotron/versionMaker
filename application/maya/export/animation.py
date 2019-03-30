@@ -1,10 +1,10 @@
 import os
 from application.maya.cache import alembic
 from version.folder import Version
-import version.export.animation
+import version.export.animation_film
 
 
-class ExportVersion(version.export.animation.ExportAnimationVersion):
+class ExportVersion(version.export.animation_film.ExportAnimationVersion):
 
     def __init__(self):
 

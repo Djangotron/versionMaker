@@ -8,9 +8,18 @@ class ExportVersion(object):
     def __init__(self):
 
         """
-        Output a version of anything.  This initiates
+        Output a version of anything.
+
+        This instantiates the necessary folder creation class, 'Version' and 'WriteFile' from meta_data_file.
+
+        It is your responsibility to
         :return:
         """
+
+        self.version = version.folder.Version()
+        self.meta_data = metadata.meta_data_file.WriteFile()
+
+    def example(self):
 
         self.version = version.folder.Version()
         self.version.path_to_versions = "D:\\temp\\test"
@@ -26,7 +35,6 @@ class ExportVersion(object):
         self.meta_data.long_name = "SH__0010__ni__animation__v{0:04}".format(self.version.version)
         self.meta_data.file_types = "alembic"
         self.meta_data.application = "maya"
-
 
     def run(self):
 

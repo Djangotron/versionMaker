@@ -2,6 +2,7 @@ import json
 import os
 import datetime
 import handler
+import constants.meta_data
 
 
 class WriteFile(handler.MetaDataCreate):
@@ -14,10 +15,11 @@ class WriteFile(handler.MetaDataCreate):
 
         super(WriteFile, self).__init__()
 
+        self.version_file_path = ""
+
+        self.meta_data_file_name = ""
         self.meta_data_file_path = ""
         self.meta_data_folder_path = ""
-
-        self.meta_data_file_suffix = "vm_meta"
 
         self.current_time = str()
 
@@ -39,5 +41,30 @@ class WriteFile(handler.MetaDataCreate):
         # check the globals have been set
         self.validate_globals()
 
+        self._format_file_name()
+
         with open(self.meta_data_file_path, 'w') as outfile:
             json.dump(self.output_data, outfile)
+
+    def _format_file_name(self):
+
+        """
+        Formats the name of the meta data file.
+        :return:
+        """
+
+        if self.version_file_path == "":
+            raise NameError(
+                "'version_file_path' not set in meta data. Unable to create meta data file."
+            )
+
+        if self.meta_data_file_name == "":
+            raise NameError(
+                "'meta_data_file_name' not set. Unable to create meta data file."
+            )
+
+        self.meta_data_file_path = "{0}/{1}.{2}".format(
+            self.version_file_path,
+            self.meta_data_file_name,
+            constants.meta_data.META_DATA_SUFFIX
+        )

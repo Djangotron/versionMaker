@@ -1,0 +1,2 @@
+META_DATA_SUFFIX = "vmeta"
+META_DATA_WRITE_FILES = True
