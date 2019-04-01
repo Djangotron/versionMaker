@@ -2,6 +2,24 @@ import re, os
 from stat import S_IREAD, S_IRGRP, S_IROTH
 
 
+def make_dir_recursive(dir_path):
+
+    """
+    Normally for windows you need to have \\ escape characters for creation.  I think with makedirs it works with / instead.
+    :param string dir_path:  Path to the directory to be created.  You can give it as many uncreated folders as you want.
+    :return:
+    """
+
+    if os.path.isdir(dir_path):
+        return
+
+    head, tail = os.path.split(dir_path) # head/tail
+    if not os.path.isdir(head):
+        make_dir_recursive(head)
+
+    os.makedirs(dir_path)
+
+
 def natural_sort(text_list=list()):
     """
     Sorts text_list as a natural sort without the need for number padding.

@@ -1,9 +1,9 @@
 import os
-import version.export
-import constants.film.hierarchy
+from .. import export
+from ...constants.film import hierarchy
 
 
-class ExportAnimationVersion(version.export.ExportVersion, constants.film.hierarchy.Hierarchy):
+class ExportAnimationVersion(export.ExportVersion, hierarchy.Hierarchy):
 
     def __init__(self):
 
@@ -13,11 +13,7 @@ class ExportAnimationVersion(version.export.ExportVersion, constants.film.hierar
 
         super(ExportAnimationVersion, self).__init__()
 
-        if "SHOT" not in os.environ:
-            raise KeyError("Envronment Variable 'SHOT' not set")
-
-        self.version.type_folder = "{0}__animation"
-        self.meta_data.publish_type = "animation"
+        # hierarchy.Hierarchy.__init__(self)
 
         self.frame_rate = 24.0
 
@@ -59,6 +55,8 @@ class ExportAnimationVersion(version.export.ExportVersion, constants.film.hierar
         task_path
         task_publish_path
 
+        meta_data.publish_type
+
         :return:
         """
 
@@ -68,7 +66,7 @@ class ExportAnimationVersion(version.export.ExportVersion, constants.film.hierar
         self.shot_name = shot
         self.task_name = task
 
-        self.show_shots_path.format(
+        self.show_shots_path = self.show_shots_path.format(
             show_path=self.show_folder_location,
             show=self.show_folder,
             production=self.production_folder,
@@ -82,24 +80,29 @@ class ExportAnimationVersion(version.export.ExportVersion, constants.film.hierar
             raise Exception("Shot Path:\n{0}\nDoes not exist\n".format(self.show_shots_path))
 
         # set the task
-        self.task_path.format(
+        self.task_path = self.task_path.format(
             shot_path=self.show_shots_path,
             sequence=sequence,
             shot=shot,
             task=task
         )
         # set the task publish folder
-        self.task_publish_path.format(
+        self.task_publish_path = self.task_publish_path.format(
             shot_path=self.show_shots_path,
             sequence=sequence,
             shot=shot,
             task=task
         )
 
+        self.meta_data.publish_type = task
+
     def set_asset(self, asset_name="", force_create=False):
 
         """
-        Sets the
+        Sets the asset in the current shot.
+
+        This will set the 'path_to_versions' & 'type_folder' attributes in the the version class
+
         :param string asset_name:  Name of the asset to export.  This could be a character /prop / ect.
         :param bool force_create:  This will create the path if it does not already exist.
         :return:
@@ -108,8 +111,22 @@ class ExportAnimationVersion(version.export.ExportVersion, constants.film.hierar
         if self.task_publish_path == "{shot_path}/{sequence}__{shot}__{task}/{sequence}__{shot}__publish":
             raise RuntimeError("Please run 'set_shot' to set the task_publish_path")
 
-        self.task_publish_asset_path.format(
+        self.task_publish_asset_path = self.task_publish_asset_path.format(
             task_publish_path=self.task_publish_path,
+            sequence=self.sequence_name,
+            shot=self.shot_name,
+            task=self.task_name,
+            asset=asset_name
+        )
+
+        self.task_publish_path = self.task_publish_path.format(
+            task_publish_path=self.task_publish_path,
+            sequence=self.sequence_name,
+            shot=self.shot_name,
+            task=self.task_name
+        )
+
+        self.task_publish_asset = self.task_publish_asset.format(
             sequence=self.sequence_name,
             shot=self.shot_name,
             task=self.task_name,
@@ -123,4 +140,13 @@ class ExportAnimationVersion(version.export.ExportVersion, constants.film.hierar
                 ))
 
         # set the versionable folder
-        self.version.path_to_versions = self.task_publish_asset_path
+        self.version.path_to_versions = self.task_publish_path
+        self.version.type_folder = self.task_publish_asset
+
+        return_dict = {
+            "task_publish_asset_path": self.task_publish_asset_path,
+            "task_publish_path": self.task_publish_path,
+            "task_publish_asset": self.task_publish_asset
+        }
+
+        return return_dict

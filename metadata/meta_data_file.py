@@ -2,7 +2,7 @@ import json
 import os
 import datetime
 import handler
-import constants.meta_data
+from ..constants import meta_data
 
 
 class WriteFile(handler.MetaDataCreate):
@@ -66,5 +66,5 @@ class WriteFile(handler.MetaDataCreate):
         self.meta_data_file_path = "{0}/{1}.{2}".format(
             self.version_file_path,
             self.meta_data_file_name,
-            constants.meta_data.META_DATA_SUFFIX
+            meta_data.META_DATA_SUFFIX
         )

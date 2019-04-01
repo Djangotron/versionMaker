@@ -1,5 +1,5 @@
 import os
-import version.utilities
+import utilities
 
 
 class Version(object):
@@ -29,9 +29,11 @@ class Version(object):
 
         # All the versions
         self.folder_versions = list()
+        self.folder_version_paths = list()
+
         self.latest_folder_version = 0
 
-        self.number_padding = 4
+        self.number_padding = 3
 
         self.verbose = False
 
@@ -100,7 +102,9 @@ class Version(object):
 
         if not os.path.exists(self.folder_version_path):
             os.mkdir(self.folder_version_path)
-            version.utilities.set_file_read_only(self.folder_version_path)
+            utilities.set_file_read_only(self.folder_version_path)
+
+        self.get_folder_versions()
 
         return self.folder_version_path
 
@@ -109,13 +113,22 @@ class Version(object):
         """
         Return the latest version of the data.
 
-        You must set the 'path_to_version' attributes and
-        :return:
+        You must set the 'path_to_version' attribute.
+        :return: string - name of the latest version
         """
 
         self.get_folder_versions()
 
-        return self.folder_versions[-1]
+        num_versions = len(self.folder_versions)
+        self.latest_folder_version = num_versions
+
+        if num_versions == 0:
+            latest_version = self.folder_versions
+        else:
+            self.latest_folder_version = num_versions-1
+            latest_version = self.folder_versions[-1]
+
+        return latest_version
 
     def get_folder_versions(self):
 
@@ -127,13 +140,18 @@ class Version(object):
         """
 
         folder_contents = os.listdir(self.path_to_versions)
-        self.folder_versions = version.utilities.natural_sort(text_list=folder_contents)
+        self.folder_versions = utilities.natural_sort(text_list=folder_contents)
 
         # test to make sure this is not a file
-        for folder in self.folder_versions[::]:
-            has_period = folder.find(".") != -1
+        for _folder in self.folder_versions[::]:
+            has_period = _folder.find(".") != -1
             if has_period:
-                self.folder_versions.remove(folder)
+                self.folder_versions.remove(_folder)
+
+        # create the path to the versions as well
+        for _folder in self.folder_versions:
+            folder_version_path = "{0}/{1}".format(self.path_to_versions, _folder)
+            self.folder_version_paths.append(folder_version_path)
 
     def set_version(self, version_number=None, new_version=None):
 
@@ -156,7 +174,7 @@ class Version(object):
             self.version = version_number
         else:
             if len_versions == 0:
-                self.version = 0
+                self.version = 1
             else:
                 self.version = len_versions-1
 

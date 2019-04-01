@@ -32,10 +32,12 @@ class Hierarchy(object):
         self.show_partition_path = "{show_path}/{show}/{production}/{partition}"
         self.show_divisions_path = "{show_path}/{show}/{production}/{partition}/{division}"
         self.show_sequences_path = "{show_path}/{show}/{production}/{partition}/{division}/{sequence}"
-        self.show_shots_path = "{show_path}/{show}/{production}/{partition}/{division}/{sequence}/{shot}"
+        self.show_shots_path = "{show_path}/{show}/{production}/{partition}/{division}/{sequence}/{sequence}__{shot}"
         self.task_path = "{shot_path}/{sequence}__{shot}__{task}"
         self.task_publish_path = "{shot_path}/{sequence}__{shot}__{task}/{sequence}__{shot}__publish"
+
         self.task_publish_asset_path = "{task_publish_path}/{sequence}__{shot}__{task}__{asset}"
+        self.task_publish_asset = "{sequence}__{shot}__{task}__{asset}"
 
         self.environments = []
 
@@ -64,6 +66,15 @@ class Hierarchy(object):
         self.software_houdini = "houdini"
         self.software_publish = "publish"
         self.three_d_software = (self.software_publish, self.software_maya, self.software_houdini)
+
+    def relative_task_asset_path(self):
+
+        """
+        Returns the asset in a shot
+        :return:
+        """
+
+        return self.task_publish_asset_path.replace(self.show_folder_location, "")[1:]
 
     def return_production_name(self):
 

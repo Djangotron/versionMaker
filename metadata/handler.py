@@ -30,8 +30,8 @@ class MetaDataCreate(object):
         self.global_data = [
             "date_time",
             "message",
-            "file_location",
-            "relative_file_path",
+            "folder_location",
+            "relative_folder_location",
             "application",
             "file_types",
             "version_number",
@@ -47,7 +47,8 @@ class MetaDataCreate(object):
 
         # global data
         self.message = ""
-        self.file_location = ""
+        self.folder_location = ""
+        self.relative_folder_location = ""
         self.application = ""
         self.applications = ["maya", "houdini"]
         self.file_types = list()
@@ -77,9 +78,14 @@ class MetaDataCreate(object):
         self.output_data["message"] = self.message
 
         # file_location
-        if self.file_location == "":
-            raise AttributeError("Please set {0}".format(self.file_location))
-        self.output_data["file_location"] = self.file_location
+        if self.folder_location == "":
+            raise AttributeError("Please set {0}".format(self.folder_location))
+        self.output_data["folder_location"] = self.folder_location
+
+        # file_location
+        if self.relative_folder_location == "":
+            raise AttributeError("Please set {0}".format(self.relative_folder_location))
+        self.output_data["relative_folder_location"] = self.relative_folder_location
 
         # application
         if self.application == "":
