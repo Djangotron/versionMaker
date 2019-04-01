@@ -21,16 +21,16 @@ This is designed to be used with arbitrary projects however its initially design
 
 ## Maya Alembic Export
 
-`
-import versionMaker.application.maya.export.animation
-afp = versionMaker.application.maya.export.animation.AnimationFilmPublish()
-afp.show_folder_location="D:/Google Drive/Projects"
-afp.show_folder = "sol"
-afp.partition="3D"
-afp.division="sequences"
-afp.sequence="SF"
-afp.shot="0010"
-afp.task="layout"
+
+<p>import versionMaker.application.maya.export.animation</P>
+`afp = versionMaker.application.maya.export.animation.AnimationFilmPublish()`
+`afp.show_folder_location="D:/Google Drive/Projects"
+afp.show_folder = "sol";
+afp.partition="3D";
+afp.division="sequences";
+afp.sequence="SF";
+afp.shot="0010";
+afp.task="layout";
 afp.asset="ni"
 afp.message="testing publish"
 afp.start_frame=1013
