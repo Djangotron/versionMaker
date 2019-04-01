@@ -21,25 +21,7 @@ This is designed to be used with arbitrary projects however its initially design
 
 ## Maya Alembic Export
 
-
-<p><code>import versionMaker.application.maya.export.animation</code></p>
-<p><code>afp = versionMaker.application.maya.export.animation.AnimationFilmPublish()</code></p>
-<p><code>afp.show_folder_location="D:/Google Drive/Projects"</code></p>
-<p><code>afp.show_folder = "sol"</code></p>
-<p><code>afp.partition="3D"</code></p>
-<p><code>afp.division="sequences"</code></p>
-<p><code>afp.sequence="SF"</code></p>
-<p><code>afp.shot="0010"</code></p>
-<p><code>afp.task="layout"</code></p>
-<p><code>afp.asset="ni"</code></p>
-<p><code>afp.message="testing publish"</code></p>
-<p><code>afp.start_frame=1013</code></p>
-<p><code>afp.end_frame=1013</code></p>
-<p><code>afp()</code></p>
-
-
-
-
+<pre>
 <code>import versionMaker.application.maya.export.animation</code>
 <code>afp = versionMaker.application.maya.export.animation.AnimationFilmPublish()</code>
 <code>afp.show_folder_location="D:/Google Drive/Projects"</code>
@@ -54,3 +36,4 @@ This is designed to be used with arbitrary projects however its initially design
 <code>afp.start_frame=1013</code>
 <code>afp.end_frame=1013</code>
 <code>afp()</code>
+</pre>
