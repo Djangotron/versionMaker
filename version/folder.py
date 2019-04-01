@@ -9,6 +9,8 @@ class Version(object):
         """
         Sets, gets, and queries latest version of folders with a specific suffix.
 
+        We count versions from 1 not 0
+
         You must set the type
         :return:
         """
@@ -104,7 +106,7 @@ class Version(object):
             os.mkdir(self.folder_version_path)
             utilities.set_file_read_only(self.folder_version_path)
 
-        self.get_folder_versions()
+        self.get_latest_version()
 
         return self.folder_version_path
 
@@ -125,7 +127,6 @@ class Version(object):
         if num_versions == 0:
             latest_version = self.folder_versions
         else:
-            self.latest_folder_version = num_versions-1
             latest_version = self.folder_versions[-1]
 
         return latest_version
@@ -151,7 +152,21 @@ class Version(object):
         # create the path to the versions as well
         for _folder in self.folder_versions:
             folder_version_path = "{0}/{1}".format(self.path_to_versions, _folder)
-            self.folder_version_paths.append(folder_version_path)
+            if folder_version_path not in self.folder_version_paths:
+                self.folder_version_paths.append(folder_version_path)
+
+    def print_version(self):
+
+        """
+        Prints all attributes out nicely.
+        :return:
+        """
+
+        for key, val in sorted(self.__dict__.items()):
+            if type(val) == list:
+                print "\t", key, ":\n\t\t", "\n\t\t".join(val)
+            else:
+                print "\t", key, ":", val
 
     def set_version(self, version_number=None, new_version=None):
 
@@ -186,6 +201,8 @@ class Version(object):
             latest = int(self.folder_versions[-1].rpartition(self.version_prefix)[2])
             self.version = latest + add_version
             self._set_folder_version_path()
+
+        self.latest_folder_version = self.version
 
     def _version_from_folder(self, folder=""):
 

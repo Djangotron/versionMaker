@@ -27,8 +27,14 @@ class ExportVersion(animation_film.ExportAnimationVersion):
         self.meta_data.application = "maya"
 
         self.alembic_class = None
+        self.cache_objects = list()
 
-        self.output_file_path = ""
+        self.maya_output_directory = ""
+        self.maya_output_file_path = ""
+        self.maya_output_file_name = ""
+
+        self.maya_output_file_paths = list()
+        self.maya_output_file_names = list()
 
     def alembic_cache_setup(self):
 
@@ -39,7 +45,13 @@ class ExportVersion(animation_film.ExportAnimationVersion):
         :return:
         """
 
-        self.meta_data.file_types = ["alembic"]
+        # set the referenced cache objects
+        self.alembic_class.cache_objects = self.cache_objects
+
+        if "alembic" not in self.meta_data.file_types:
+            self.meta_data.file_types.append("alembic")
+
+        self.set_alembic_name()
 
         # Write alembic cache
         self.alembic_class = alembic.AlembicCache()
@@ -51,7 +63,11 @@ class ExportVersion(animation_film.ExportAnimationVersion):
         self.alembic_class.start_frame = self.start_frame
         self.alembic_class.end_frame = self.end_frame
 
-        self.alembic_class.file_path = "{0}.abc".format(self.output_file_path)
+        self.alembic_class.file_path = self.maya_output_file_path
+
+        # Set the alembic file paths to the ancillary_data
+        self.meta_data.ancillary_data["alembic_paths"] = self.maya_output_file_paths
+        self.meta_data.ancillary_data["alembic_names"] = self.maya_output_file_names
 
     def alembic_cache_write(self):
 
@@ -81,6 +97,37 @@ class ExportVersion(animation_film.ExportAnimationVersion):
         :return:
         """
 
+    def set_alembic_name(self):
+
+        """
+        Create the alembic name and path attributes
+        :return:
+        """
+
+        # make sure you
+        if self.maya_output_file_name == "":
+            raise NameError("output_file_name not set for alembic")
+
+        # make sure the file extension is set
+        if self.maya_output_file_name.find(".abc") != -1:
+            self.maya_output_file_name = "{0}.abc".format(self.maya_output_file_name)
+
+        # Append to the names list
+        if self.maya_output_file_name not in self.maya_output_file_names:
+            self.maya_output_file_names.append(self.maya_output_file_name)
+
+        # make sure you have a directory to put the file in
+        if self.maya_output_directory == "":
+            raise RuntimeError("'output_file_name' not set for alembic")
+
+        if self.maya_output_file_path == "":
+            self.maya_output_file_path = "{0}/{1}".format(
+                self.maya_output_directory,
+                self.maya_output_file_name
+            )
+
+        return self.maya_output_file_name, self.maya_output_file_path
+
 
 class AnimationFilmPublish(ExportVersion):
 
@@ -104,12 +151,20 @@ class AnimationFilmPublish(ExportVersion):
         # this is the name of the file to output
         self.asset_file_name = ""
 
+        self.verbose = True
+
+        self.export_alembic = False
+        self.export_master_scene = False
+        self.export_offline_file = False
+
     def __call__(self):
 
         """
-        runs the create version from the
+        This will create the verion and it's meta data.
         :return:
         """
+
+        self.version.verbose = self.verbose
 
         # Set the shot and the asset
         self.set_shot(
@@ -123,12 +178,6 @@ class AnimationFilmPublish(ExportVersion):
 
         # we can get the version after the asset has been set
         self.version.get_latest_version()
-
-        # for key, val in sorted(self.__dict__.items()):
-        #     print "\t", key, ":", val
-
-        for key, val in sorted(self.version.__dict__.items()):
-            print "\t", key, ":", val
 
         # set the meta data attributes
         self.meta_data.message = self.message
@@ -145,4 +194,15 @@ class AnimationFilmPublish(ExportVersion):
         self.meta_data.meta_data_file_name = self.task_publish_asset
 
         self.meta_data.meta_data_folder_path = self.version.folder_version_path
+
+        # If we will export the data
+        if self.export_alembic:
+            self.alembic_cache_setup()
+
         self.meta_data.create_file()
+
+        # for key, val in sorted(self.__dict__.items()):
+        #     print "\t", key, ":", val
+
+        if self.verbose:
+            self.version.print_version()
