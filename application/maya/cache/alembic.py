@@ -1,4 +1,5 @@
 from maya import cmds, OpenMaya, mel
+from ....version import utilities
 
 
 def alembic_kwargs_to_jargs(**kwargs):
@@ -298,9 +299,11 @@ class AlembicCache(object):
         """
 
         if not self.has_been_called:
+
             self.set_cache_geometries()
             self.append_user_attributes()
             self.set_export_command()
+
             self.has_been_called = True
 
     def append_user_attributes(self):
@@ -343,7 +346,7 @@ class AlembicCache(object):
             raise NameError("No root geometries set.")
 
         self.export_command = \
-            'AbcExport -j{verbose} "-sn -frameRange {start} {end} -uvWrite -worldSpace{root}{user_attributes} -file {file_path}"'.format(
+            'AbcExport -j{verbose} "-sn -frameRange {start} {end} -uvWrite -dataFormat ogawa -worldSpace{root}{user_attributes} -file \\"{file_path}\\""'.format(
                 verbose=verbose,
                 start=self.start_frame,
                 end=self.end_frame,
@@ -359,14 +362,14 @@ class AlembicCache(object):
         :return:
         """
 
-        cache_sets = self.get_cache_sets()
+        # cache_sets = self.get_cache_sets()
+        #
+        # for cache_set in cache_sets:
+        #
+        #     self.cache_objects = cmds.sets(cache_set, query=True)
 
-        for cache_set in cache_sets:
-
-            self.cache_objects = cmds.sets(cache_set, query=True)
-
-            for obj in self.cache_objects:
-                self.root_geometries += " -root {0}".format(obj)
+        for obj in self.cache_objects:
+            self.root_geometries += " -root {0}".format(obj)
 
     def get_cache_sets(self):
 

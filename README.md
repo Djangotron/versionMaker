@@ -21,19 +21,21 @@ This is designed to be used with arbitrary projects however its initially design
 
 ## Maya Alembic Export
 
-<pre>
-<code>import versionMaker.application.maya.export.animation</code>
-<code>afp = versionMaker.application.maya.export.animation.AnimationFilmPublish()</code>
-<code>afp.show_folder_location="D:/Google Drive/Projects"</code>
-<code>afp.show_folder = "sol"</code>
-<code>afp.partition="3D"</code>
-<code>afp.division="sequences"</code>
-<code>afp.sequence="SF"</code>
-<code>afp.shot="0010"</code>
-<code>afp.task="layout"</code>
-<code>afp.asset="ni"</code>
-<code>afp.message="testing publish"</code>
-<code>afp.start_frame=1013</code>
-<code>afp.end_frame=1013</code>
-<code>afp()</code>
-</pre>
+Here we import AnimationFilmPublish and set all the necessary/recommended settings to export.
+
+<pre><code>
+import versionMaker.application.maya.export.animation
+afp = versionMaker.application.maya.export.animation.AnimationFilmPublish()
+afp.show_folder_location="D:/Google Drive/Projects"
+afp.show_folder = "sol"
+afp.partition="3D"
+afp.division="sequences"
+afp.sequence="SF"
+afp.shot="0010"
+afp.task="layout"
+afp.asset="ni"
+afp.message="testing publish"
+afp.start_frame=1013
+afp.end_frame=1013
+afp()
+</code></pre>

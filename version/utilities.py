@@ -50,6 +50,17 @@ def set_file_read_only(file_path):
     os.chmod(file_path, S_IREAD | S_IRGRP | S_IROTH)
 
 
+def path_conversion(path):
+
+    """
+    Takes a unix stype path and makes sure it is of windows type.  Basically replacing '/' with '\\' for windows paths.
+    :param string path:  Path to a folder in a unix style path.
+    :return:
+    """
+
+    return path.replace("\\", r"/").decode("string_escape")
+
+
 def windows_path_conversion(path):
 
     """

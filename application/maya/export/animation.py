@@ -1,4 +1,5 @@
 import os
+from maya import cmds
 from ..cache import alembic
 from ....version.folder import Version
 from ....version.export import animation_film
@@ -28,6 +29,7 @@ class ExportVersion(animation_film.ExportAnimationVersion):
 
         self.alembic_class = None
         self.cache_objects = list()
+        self.cache_sets = list()
 
         self.maya_output_directory = ""
         self.maya_output_file_path = ""
@@ -35,6 +37,25 @@ class ExportVersion(animation_film.ExportAnimationVersion):
 
         self.maya_output_file_paths = list()
         self.maya_output_file_names = list()
+
+    def query_cache_sets(self):
+
+        """
+        Checks cache sets for objects to add to the cache
+        :return:
+        """
+
+        for cache_set in self.cache_sets:
+
+            if not cmds.objectType(cache_set) == "objectSet":
+
+                set_objects = cmds.sets(cache_set, query=True)
+                if set_objects is None:
+                    cmds.warning("No Objects found in set: '{0}'".format(cache_set))
+
+                for set_obj in set_objects:
+                    if set_obj not in self.cache_objects:
+                        self.cache_objects.append(set_obj)
 
     def alembic_cache_setup(self):
 
@@ -45,6 +66,9 @@ class ExportVersion(animation_film.ExportAnimationVersion):
         :return:
         """
 
+        # Write alembic cache
+        self.alembic_class = alembic.AlembicCache()
+
         # set the referenced cache objects
         self.alembic_class.cache_objects = self.cache_objects
 
@@ -52,9 +76,6 @@ class ExportVersion(animation_film.ExportAnimationVersion):
             self.meta_data.file_types.append("alembic")
 
         self.set_alembic_name()
-
-        # Write alembic cache
-        self.alembic_class = alembic.AlembicCache()
 
         # Set the time line
         if self.pre_roll_start_frame is not None:
@@ -68,6 +89,7 @@ class ExportVersion(animation_film.ExportAnimationVersion):
         # Set the alembic file paths to the ancillary_data
         self.meta_data.ancillary_data["alembic_paths"] = self.maya_output_file_paths
         self.meta_data.ancillary_data["alembic_names"] = self.maya_output_file_names
+        self.meta_data.ancillary_data["cache_objects"] = self.cache_objects
 
     def alembic_cache_write(self):
 
@@ -109,7 +131,7 @@ class ExportVersion(animation_film.ExportAnimationVersion):
             raise NameError("output_file_name not set for alembic")
 
         # make sure the file extension is set
-        if self.maya_output_file_name.find(".abc") != -1:
+        if self.maya_output_file_name.find(".abc") == -1:
             self.maya_output_file_name = "{0}.abc".format(self.maya_output_file_name)
 
         # Append to the names list
@@ -151,7 +173,7 @@ class AnimationFilmPublish(ExportVersion):
         # this is the name of the file to output
         self.asset_file_name = ""
 
-        self.verbose = True
+        self.verbose = False
 
         self.export_alembic = False
         self.export_master_scene = False
@@ -188,7 +210,7 @@ class AnimationFilmPublish(ExportVersion):
         # Set the output data
         self.set_animation_export_variable()
 
-        new_version = self.version.create_version()
+        new_version = self.version.create_version(search_string=self.asset)
 
         self.meta_data.version_file_path = new_version
         self.meta_data.meta_data_file_name = self.task_publish_asset
@@ -197,6 +219,8 @@ class AnimationFilmPublish(ExportVersion):
 
         # If we will export the data
         if self.export_alembic:
+            self.maya_output_directory = self.version.folder_version_path
+            self.maya_output_file_name = self.version.folder_version
             self.alembic_cache_setup()
 
         self.meta_data.create_file()

@@ -84,7 +84,7 @@ class Version(object):
             version=self.folder_version_number
         )
 
-        self.folder_version_path = "{path}\\{typeFolder}{version}".format(
+        self.folder_version_path = "{path}/{typeFolder}{version}".format(
             path=self.path_to_versions,
             typeFolder=self.type_folder,
             version=self.folder_version_number
@@ -93,7 +93,7 @@ class Version(object):
         if self.folder_version not in self.folder_versions:
             self.folder_versions.append(self.folder_version)
 
-    def create_version(self):
+    def create_version(self, search_string=None):
 
         """
         Creates a new version folder for
@@ -106,20 +106,22 @@ class Version(object):
             os.mkdir(self.folder_version_path)
             utilities.set_file_read_only(self.folder_version_path)
 
-        self.get_latest_version()
+        self.get_latest_version(search_string=search_string)
 
         return self.folder_version_path
 
-    def get_latest_version(self):
+    def get_latest_version(self, search_string=None):
 
         """
         Return the latest version of the data.
 
         You must set the 'path_to_version' attribute.
+
+        :param string | None search_string:
         :return: string - name of the latest version
         """
 
-        self.get_folder_versions()
+        self.get_folder_versions(search_string=search_string)
 
         num_versions = len(self.folder_versions)
         self.latest_folder_version = num_versions
@@ -131,12 +133,13 @@ class Version(object):
 
         return latest_version
 
-    def get_folder_versions(self):
+    def get_folder_versions(self, search_string=None):
 
         """
         List all the folders version in a directory from attribute 'path_to_versions'.
         Sort them and remove any files.
 
+        :param string | None search_string:
         :return:
         """
 
@@ -148,6 +151,11 @@ class Version(object):
             has_period = _folder.find(".") != -1
             if has_period:
                 self.folder_versions.remove(_folder)
+
+            if search_string:
+                if _folder.find(search_string) == -1:
+                    if _folder in self.folder_versions:
+                        self.folder_versions.remove(_folder)
 
         # create the path to the versions as well
         for _folder in self.folder_versions:
@@ -168,11 +176,12 @@ class Version(object):
             else:
                 print "\t", key, ":", val
 
-    def set_version(self, version_number=None, new_version=None):
+    def set_version(self, search_string=None, version_number=None, new_version=None):
 
         """
         Set to the version we want to use
 
+        :param string | None search_string:
         :param int | None version_number:
         :param bool new_version:
         :return:
@@ -182,7 +191,7 @@ class Version(object):
         if new_version:
             add_version = 1
 
-        self.get_folder_versions()
+        self.get_folder_versions(search_string=None)
         len_versions = len(self.folder_versions)
 
         if version_number:
