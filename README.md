@@ -21,6 +21,7 @@ This is designed to be used with arbitrary projects however its initially design
 
 ## Maya Alembic Export
 
+`
 import versionMaker.application.maya.export.animation
 afp = versionMaker.application.maya.export.animation.AnimationFilmPublish()
 afp.show_folder_location="D:/Google Drive/Projects"
@@ -35,3 +36,4 @@ afp.message="testing publish"
 afp.start_frame=1013
 afp.end_frame=1013
 afp()
+`
