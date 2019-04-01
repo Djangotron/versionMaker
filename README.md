@@ -21,19 +21,18 @@ This is designed to be used with arbitrary projects however its initially design
 
 ## Maya Alembic Export
 
-<code>
-<p>import versionMaker.application.maya.export.animation</P>
-<p>afp = versionMaker.application.maya.export.animation.AnimationFilmPublish()</P>
-<p>afp.show_folder_location="D:/Google Drive/Projects"</P>
-<p>afp.show_folder = "sol"</P>
-<p>afp.partition="3D"</P>
-<p>afp.division="sequences"</P>
-<p>afp.sequence="SF"</P>
-<p>afp.shot="0010"</P>
-<p>afp.task="layout"</P>
-<p>afp.asset="ni"</P>
-<p>afp.message="testing publish"</P>
-<p>afp.start_frame=1013</P>
-<p>afp.end_frame=1013</P>
-<p>afp()</P>
-</code>
+
+<p><code>import versionMaker.application.maya.export.animation<code></p>
+<p><code>afp = versionMaker.application.maya.export.animation.AnimationFilmPublish()<code></p>
+<p><code>afp.show_folder_location="D:/Google Drive/Projects"<code></p>
+<p><code>afp.show_folder = "sol"<code></p>
+<p><code>afp.partition="3D"<code></p>
+<p><code>afp.division="sequences"<code></p>
+<p><code>afp.sequence="SF"<code></p>
+<p><code>afp.shot="0010"<code></p>
+<p><code>afp.task="layout"<code></p>
+<p><code>afp.asset="ni"<code></p>
+<p><code>afp.message="testing publish"<code></p>
+<p><code>afp.start_frame=1013<code></p>
+<p><code>afp.end_frame=1013<code></p>
+<p><code>afp()<code></p>
