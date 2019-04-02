@@ -59,3 +59,26 @@ def export_layout_for_sequence():
             afp.cache_objects = [cache_obj]
             afp()
             afp.alembic_cache_write()
+
+
+def import_layout_for_shot(sequence="SF", shot="0030", asset=""):
+
+    """
+
+    Example of how to import alembic caches for animation.
+
+    :param string sequence:
+    :param string shot:
+    :param string asset:
+    :return:
+    """
+
+    afp = animation.AnimationFilmPublish()
+    afp.show_folder_location = "D:/Google Drive/Projects"
+    afp.show_folder = "sol"
+    afp.partition = "3D"
+    afp.division = "sequences"
+    afp.sequence = sequence
+    afp.shot = shot
+    afp.task = "layout"
+    afp.asset = asset

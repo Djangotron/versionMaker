@@ -1,4 +1,6 @@
-# Version Maker
+![GitHub Logo](lib/images/version_maker_logo_v01.png)
+
+
 A repository to create versions of any type of asset.
 
 This is designed to be used with arbitrary projects however its initially designed for film.

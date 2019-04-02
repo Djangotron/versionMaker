@@ -16,7 +16,7 @@ further data
 """
 
 
-class MetaDataCreate(object):
+class MetaData(object):
 
     def __init__(self):
 
@@ -56,11 +56,32 @@ class MetaDataCreate(object):
         self.version_number = -1
         self.publish_type = ""
         self.long_name = ""
+        self.time_stamp = ""
 
+        self.input_data = dict()
         self.output_data = dict()
+
         self.ancillary_data = dict()
 
         self.verbose = False
+
+    def get_globals(self):
+
+        """
+        Sets all of the global attributes from a meta data file
+        :return:
+        """
+
+        self.time_stamp = self.input_data["date_time"]
+        self.message = self.input_data["message"]
+        self.folder_location = self.input_data["folder_location"]
+        self.relative_folder_location = self.input_data["relative_folder_location"]
+        self.application = self.input_data["application"]
+        self.file_types = self.input_data["file_types"]
+        self.version_number = self.input_data["version_number"]
+        self.publish_type = self.input_data["publish_type"]
+        self.long_name = self.input_data["long_name"]
+        self.ancillary_data = self.input_data["ancillary_data"]
 
     def set_globals(self):
 
@@ -70,7 +91,8 @@ class MetaDataCreate(object):
         """
 
         # set the publish time
-        self.output_data["date_time"] = str(datetime.datetime.now())
+        self.time_stamp = str(datetime.datetime.now())
+        self.output_data["date_time"] = self.time_stamp
 
         # message
         if self.message == "":
@@ -93,7 +115,7 @@ class MetaDataCreate(object):
         self.output_data["application"] = self.application
 
         # file type
-        if self.file_types == "":
+        if self.file_types == list():
             raise AttributeError("Please set {0}".format(self.file_types))
         self.output_data["file_types"] = self.file_types
 
@@ -114,7 +136,7 @@ class MetaDataCreate(object):
 
         self.output_data["ancillary_data"] = self.ancillary_data
 
-    def validate_globals(self):
+    def validate_globals_output(self):
 
         """
         Validates that the globals have been set

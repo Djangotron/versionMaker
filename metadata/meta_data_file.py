@@ -5,7 +5,43 @@ import handler
 from ..constants import meta_data
 
 
-class WriteFile(handler.MetaDataCreate):
+class ReadFile(handler.MetaData):
+
+    def __init__(self):
+
+        """
+        Reads meta data files and sets internal attributes
+        """
+
+        super(ReadFile, self).__init__()
+
+        self.version_file_path = ""
+
+        self.meta_data_file_name = ""
+        self.meta_data_file_path = ""
+        self.meta_data_folder_path = ""
+
+        self.current_time = str()
+
+    def load_file(self):
+
+        """
+        Takes the meta data file and loads its contents into memory.
+        :return:
+        """
+
+        path_exists = os.path.exists(self.meta_data_folder_path)
+        if self.meta_data_file_path == "" or not path_exists:
+            raise RuntimeError("meta_data_file_path:\n'{0}'\nDoes not exist.\n".format(self.meta_data_folder_path))
+
+        json_file = open(self.meta_data_file_path)
+        self.input_data = json.load(json_file)
+        json_file.close()
+
+
+
+
+class WriteFile(handler.MetaData):
 
     def __init__(self):
 
@@ -39,7 +75,7 @@ class WriteFile(handler.MetaDataCreate):
         self.output_data["date_time"] = self.current_time
 
         # check the globals have been set
-        self.validate_globals()
+        self.validate_globals_output()
 
         self._format_file_name()
 

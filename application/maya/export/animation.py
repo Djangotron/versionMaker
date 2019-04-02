@@ -175,6 +175,8 @@ class AnimationFilmPublish(ExportVersion):
         # this is the name of the file to output
         self.asset_file_name = ""
 
+        self.asset_version = ""
+
         self.verbose = False
 
         self.export_alembic = False
