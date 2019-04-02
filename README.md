@@ -1,4 +1,4 @@
-![GitHub Logo](lib/images/version_maker_logo_v01.png)
+![Version Maker Logo](lib_vm/images/version_maker_logo_v01.png)
 
 
 A repository to create versions of any type of asset.
