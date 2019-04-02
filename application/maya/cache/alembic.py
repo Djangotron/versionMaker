@@ -285,6 +285,7 @@ class AlembicCache(object):
         self.export_command = ""
         self.import_command = ""
 
+        self.renderable_only = True
         self.root_geometries = str()
 
         self.alembic_verbose = False
@@ -297,6 +298,10 @@ class AlembicCache(object):
         compile the export command.
         :return:
         """
+
+        # Print the cacheable objects
+        if self.alembic_verbose:
+            OpenMaya.MGlobal.displayInfo("{0}\tcache_objects:{1}".format(self.__module__, self.cache_objects))
 
         if not self.has_been_called:
 
@@ -322,7 +327,7 @@ class AlembicCache(object):
 
     def export(self):
         """
-        Run the export
+        Run the export command.
         :return:
         """
 
@@ -345,12 +350,17 @@ class AlembicCache(object):
         if self.root_geometries == list():
             raise NameError("No root geometries set.")
 
+        renderable_only = ""
+        if self.renderable_only:
+            renderable_only = " -renderableOnly"
+
         self.export_command = \
-            'AbcExport -j{verbose} "-sn -frameRange {start} {end} -uvWrite -dataFormat ogawa -worldSpace{root}{user_attributes} -file \\"{file_path}\\""'.format(
+            'AbcExport -j{verbose} "-sn -frameRange {start} {end} -uvWrite -dataFormat ogawa -worldSpace{root}{renderable_only}{user_attributes} -file \\"{file_path}\\""'.format(
                 verbose=verbose,
                 start=self.start_frame,
                 end=self.end_frame,
                 root=self.root_geometries,
+                renderable_only=renderable_only,
                 user_attributes=self.user_attributes_string,
                 file_path=self.file_path
             )

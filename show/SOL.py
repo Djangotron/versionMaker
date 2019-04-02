@@ -55,7 +55,7 @@ def export_layout_for_sequence():
             afp.end_frame = frame_number
             afp.cache_sets = cache_obj
 
-            # afp.version.print_version()
+            #
+            afp.cache_objects = [cache_obj]
             afp()
-            afp.alembic_class.cache_objects = [cache_obj]
             afp.alembic_cache_write()

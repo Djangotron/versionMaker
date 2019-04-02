@@ -1,9 +1,9 @@
 import os
-from .. import export
+from .. import import_version
 from ...constants.film import hierarchy
 
 
-class ExportAnimationVersion(export.ExportVersion, hierarchy.Hierarchy):
+class ImportAnimationVersion(import_version.ExportVersion, hierarchy.Hierarchy):
 
     def __init__(self):
 
@@ -11,7 +11,7 @@ class ExportAnimationVersion(export.ExportVersion, hierarchy.Hierarchy):
         Sets common animation data to output in the meta data file.
         """
 
-        super(ExportAnimationVersion, self).__init__()
+        super(ImportAnimationVersion, self).__init__()
 
         # hierarchy.Hierarchy.__init__(self)
 
@@ -23,26 +23,6 @@ class ExportAnimationVersion(export.ExportVersion, hierarchy.Hierarchy):
         #
         self.pre_roll_start_frame = None
         self.post_roll_end_frame = None
-
-    def set_animation_export_variable(self):
-
-        """
-        Sets common animation values to the
-        :return:
-        """
-
-        if self.pre_roll_start_frame is not None:
-            self.meta_data.ancillary_data["pre_roll_start_frame"] = self.pre_roll_start_frame
-
-        if self.post_roll_end_frame is not None:
-            self.meta_data.ancillary_data["post_roll_end_frame"] = self.post_roll_end_frame
-
-        self.meta_data.ancillary_data["frame_rate"] = self.frame_rate
-        self.meta_data.ancillary_data["start_frame"] = self.start_frame
-        self.meta_data.ancillary_data["end_frame"] = self.end_frame
-
-        # Set all of the meta data values to the meta data dictionary
-        self.meta_data.set_globals()
 
     def set_shot(self, partition, division, sequence, shot, task):
 
@@ -109,7 +89,7 @@ class ExportAnimationVersion(export.ExportVersion, hierarchy.Hierarchy):
         """
 
         if self.task_publish_path == "{shot_path}/{sequence}__{shot}__{task}/{sequence}__{shot}__publish":
-            raise RuntimeError("Please run 'set_shot' to set the task_publish_path")
+            raise RuntimeError("Please run '{0}.set_shot' to set the task_publish_path".format(self.__module__))
 
         self.task_publish_asset_path = self.task_publish_asset_path.format(
             task_publish_path=self.task_publish_path,

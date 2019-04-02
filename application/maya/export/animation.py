@@ -2,7 +2,7 @@ import os
 from maya import cmds
 from ..cache import alembic
 from ....version.folder import Version
-from ....version.export import animation_film
+from ....version.export_version import animation_film
 
 
 class ExportVersion(animation_film.ExportAnimationVersion):
@@ -10,7 +10,7 @@ class ExportVersion(animation_film.ExportAnimationVersion):
     def __init__(self):
 
         """
-        Child of the version.export.Version
+        Child of the version.export_version.Version
 
         Export an animation version many different uses.
 
@@ -27,7 +27,8 @@ class ExportVersion(animation_film.ExportAnimationVersion):
         # set the output meta data to maya
         self.meta_data.application = "maya"
 
-        self.alembic_class = None
+        # Write alembic cache
+        self.alembic_class = alembic.AlembicCache()
         self.cache_objects = list()
         self.cache_sets = list()
 
@@ -65,9 +66,6 @@ class ExportVersion(animation_film.ExportAnimationVersion):
         The alembic cache
         :return:
         """
-
-        # Write alembic cache
-        self.alembic_class = alembic.AlembicCache()
 
         # set the referenced cache objects
         self.alembic_class.cache_objects = self.cache_objects
@@ -148,6 +146,10 @@ class ExportVersion(animation_film.ExportAnimationVersion):
                 self.maya_output_file_name
             )
 
+        # Append to the names list
+        if self.maya_output_file_path not in self.maya_output_file_paths:
+            self.maya_output_file_paths.append(self.maya_output_file_path)
+
         return self.maya_output_file_name, self.maya_output_file_path
 
 
@@ -207,21 +209,24 @@ class AnimationFilmPublish(ExportVersion):
         self.meta_data.relative_folder_location = self.relative_task_asset_path()
         self.meta_data.long_name = self.task_publish_asset
 
-        # Set the output data
-        self.set_animation_export_variable()
-
+        # Create the new version
         new_version = self.version.create_version(search_string=self.asset)
 
-        self.meta_data.version_file_path = new_version
-        self.meta_data.meta_data_file_name = self.task_publish_asset
-
-        self.meta_data.meta_data_folder_path = self.version.folder_version_path
+        self.meta_data.version_number = self.version.version
 
         # If we will export the data
         if self.export_alembic:
             self.maya_output_directory = self.version.folder_version_path
             self.maya_output_file_name = self.version.folder_version
             self.alembic_cache_setup()
+
+        # Set the output data
+        self.set_animation_export_variable()
+
+        self.meta_data.version_file_path = new_version
+        self.meta_data.meta_data_file_name = self.task_publish_asset
+
+        self.meta_data.meta_data_folder_path = self.version.folder_version_path
 
         self.meta_data.create_file()
 
