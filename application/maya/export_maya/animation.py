@@ -202,9 +202,6 @@ class AnimationFilmPublish(ExportVersion):
         )
         self.set_asset(asset_name=self.asset, force_create=True)
 
-        # we can get the version after the asset has been set
-        self.version.get_latest_version()
-
         # set the meta data attributes
         self.meta_data.message = self.message
         self.meta_data.folder_location = self.task_publish_asset_path
@@ -226,7 +223,7 @@ class AnimationFilmPublish(ExportVersion):
         self.set_animation_export_variable()
 
         self.meta_data.version_file_path = new_version
-        self.meta_data.meta_data_file_name = self.task_publish_asset
+        self.meta_data.meta_data_file_name = self.version.folder_version
 
         self.meta_data.meta_data_folder_path = self.version.folder_version_path
 

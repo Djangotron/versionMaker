@@ -86,7 +86,7 @@ class ImportVersion(animation_film.ImportAnimationVersion):
 
 class AnimationFilmImport(ImportVersion):
 
-    def     __init__(self):
+    def __init__(self):
 
         """
         A final class to wrap all of the export tasks to.
@@ -137,7 +137,7 @@ class AnimationFilmImport(ImportVersion):
         self.set_asset(asset_name=self.asset, force_create=True)
 
         # we can get the version after the asset has been set
-        self.version.get_latest_version()
+        self.version.get_latest_version(search_string=self.asset)
 
         if self.version.folder_version_path == "":
             cmds.warning("Did not find any versions")

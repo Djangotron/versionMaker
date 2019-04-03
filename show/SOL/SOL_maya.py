@@ -1,6 +1,6 @@
 from maya import cmds
-from ...application.maya.export_maya import animation
-from ...application.maya.import_maya import animation
+from ...application.maya.export_maya import animation as export_animation
+from ...application.maya.import_maya import animation as import_animation
 
 
 def export_layout_for_sequence():
@@ -33,14 +33,15 @@ def export_layout_for_sequence():
 
         #
         cachable_objects = [cam, "itUk:geometry_GRP", "ni:geometry_GRP"]
+        # cachable_objects = ["itUk:geometry_GRP"]
         for int_cache_obj, cache_obj in enumerate(cachable_objects):
 
-            if int_cache_obj == 0:
-                name = "cam"
-            else:
+            if cache_obj.find("itUk") != -1 or cache_obj.find("ni") != -1:
                 name = cache_obj.split(":")[0]
+            else:
+                name = "cam"
 
-            afp = animation.AnimationFilmPublish()
+            afp = export_animation.AnimationFilmPublish()
             afp.export_alembic = True
 
             afp.show_folder_location = "D:/Google Drive/Projects"
@@ -58,6 +59,8 @@ def export_layout_for_sequence():
 
             #
             afp.cache_objects = [cache_obj]
+
+            # Call the class to setup the alembic export
             afp()
             afp.alembic_cache_write()
 
@@ -74,7 +77,7 @@ def import_layout_for_shot(sequence="SF", shot="0030", asset=""):
     :return:
     """
 
-    afp = animation.AnimationFilmImport()
+    afp = import_animation.AnimationFilmImport()
     afp.show_folder_location = "D:/Google Drive/Projects"
     afp.show_folder = "sol"
     afp.partition = "3D"

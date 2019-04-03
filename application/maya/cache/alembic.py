@@ -37,11 +37,13 @@ def alembic_kwargs_to_jargs(**kwargs):
 class AlembicCache(object):
     """Class to generate alembic cache commands"""
 
-    try:
+    # try:
+    if not cmds.pluginInfo('AbcExport.mll', query=True, loaded=True):
         cmds.loadPlugin('AbcExport.mll')
-        cmds.loadPlugin('AbcImport.mll')
-    except Exception:
-        raise Exception("Cannot load Alembic Plugins")
+    if not cmds.pluginInfo('AbcExport.mll', query=True, loaded=True):
+        cmds.loadPlugin('AbcExport.mll')
+    # except Exception:
+    #     raise Exception("Cannot load Alembic Plugins")
 
     # Alembic Export Options
     '''
@@ -287,7 +289,8 @@ class AlembicCache(object):
         self.end_frame = 10
         self.step = 1
         self.frame_relative_samples = [-0.25, 0.25]
-        self.renderable_only = True
+        self.renderable_only = False
+        self.write_visibility = True
         self.root_geometries = str()
 
         # import controls
@@ -373,13 +376,18 @@ class AlembicCache(object):
         if self.renderable_only:
             renderable_only = " -renderableOnly"
 
+        write_visibility = ""
+        if self.write_visibility:
+            write_visibility = " -writeVisibility"
+
         self.export_command = \
-            'AbcExport -j{verbose} "-sn -frameRange {start} {end} -uvWrite -dataFormat ogawa -worldSpace{root}{renderable_only}{user_attributes} -file \\"{file_path}\\""'.format(
+            'AbcExport -j{verbose} "-sn -frameRange {start} {end} -uvWrite -dataFormat ogawa -worldSpace{root}{renderable_only}{write_visibility}{user_attributes} -file \\"{file_path}\\""'.format(
                 verbose=verbose,
                 start=self.start_frame,
                 end=self.end_frame,
                 root=self.root_geometries,
                 renderable_only=renderable_only,
+                write_visibility=write_visibility,
                 user_attributes=self.user_attributes_string,
                 file_path=self.file_path
             )

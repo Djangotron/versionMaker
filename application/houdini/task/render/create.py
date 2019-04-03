@@ -26,3 +26,10 @@ class RenderSop(object):
         self.geometry_sop = self.obj_context.createNode("geo", self.name, run_init_scripts=True)
         self.geometry_sop_obj = hou.node("/obj/{0}".format(self.name))
 
+        # Create asset folder attribute
+
+
+        # Create asset name attribute
+
+
+        # Create

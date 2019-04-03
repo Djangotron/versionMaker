@@ -3,6 +3,7 @@ import os
 import datetime
 import handler
 from ..constants import meta_data
+from ..version import utilities
 
 
 class ReadFile(handler.MetaData):
@@ -98,6 +99,8 @@ class WriteFile(handler.MetaData):
 
         with open(self.meta_data_file_path, 'w') as outfile:
             json.dump(self.output_data, outfile)
+
+        utilities.set_file_read_only(file_path=self.meta_data_file_path)
 
     def _format_file_name(self):
 

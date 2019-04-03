@@ -110,7 +110,7 @@ class Version(object):
         :return:
         """
 
-        self.set_version(new_version=True)
+        self.set_version(search_string=search_string, new_version=True)
 
         if not os.path.exists(self.folder_version_path):
             os.mkdir(self.folder_version_path)
@@ -131,19 +131,7 @@ class Version(object):
         :return: string - name of the latest version
         """
 
-        self.set_version(new_version=False)
-
-        # self.get_folder_versions(search_string=search_string)
-        #
-        # num_versions = len(self.folder_versions)
-        # self.latest_folder_version = num_versions
-        #
-        # if num_versions == 0:
-        #     latest_version = self.folder_versions
-        # else:
-        #     latest_version = self.folder_versions[-1]
-        #
-        # return latest_version
+        self.set_version(search_string=search_string, new_version=False)
 
     def get_folder_versions(self, search_string=None):
 
@@ -151,23 +139,26 @@ class Version(object):
         List all the folders version in a directory from attribute 'path_to_versions'.
         Sort them and remove any files.
 
-        :param string | None search_string:
+        :param string | None search_string:  This is the what we are looking for in the folder name.  It is case sensitive.
         :return:
         """
 
+        if search_string is None:
+            raise RuntimeError("Cannot query folder versions; Need a search string.")
+
         folder_contents = os.listdir(self.path_to_versions)
-        self.folder_versions = utilities.natural_sort(text_list=folder_contents)
+        folder_contents = utilities.natural_sort(text_list=folder_contents)
 
         # test to make sure this is not a file
-        for _folder in self.folder_versions[::]:
+        for _folder in folder_contents:
             has_period = _folder.find(".") != -1
             if has_period:
-                self.folder_versions.remove(_folder)
+                continue
 
             if search_string:
-                if _folder.find(search_string) == -1:
-                    if _folder in self.folder_versions:
-                        self.folder_versions.remove(_folder)
+                if _folder.find(search_string) != -1:
+                    if _folder not in self.folder_versions:
+                        self.folder_versions.append(_folder)
 
         # create the path to the versions as well
         for _folder in self.folder_versions:
@@ -208,7 +199,7 @@ class Version(object):
         if new_version:
             add_version = 1
 
-        self.get_folder_versions(search_string=None)
+        self.get_folder_versions(search_string=search_string)
         len_versions = len(self.folder_versions)
 
         if version_number:
