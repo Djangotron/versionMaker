@@ -268,25 +268,32 @@ class AlembicCache(object):
 
     def __init__(self):
 
+        """
+        Controls importing and exporting alembic caches in maya.
+
+        Possible import modes: ("open"|"import"|"replace")
+        """
+
+        self.file_path = ""
+
+        # Export controls
+        self.export_command = ""
         self.cache_set = "cache_set"
         self.cache_objects = list()
-
         self.user_attributes = list()
         self.user_attributes_string = str()  # do not use this attr
-
         self.pre_roll_frame = 1
         self.start_frame = 1
         self.end_frame = 10
         self.step = 1
         self.frame_relative_samples = [-0.25, 0.25]
-
-        self.file_path = ""
-
-        self.export_command = ""
-        self.import_command = ""
-
         self.renderable_only = True
         self.root_geometries = str()
+
+        # import controls
+        self.import_command = ""
+        self.import_mode = "import"
+        self.import_parent = ""
 
         self.alembic_verbose = False
 
@@ -336,6 +343,18 @@ class AlembicCache(object):
         finally:
             OpenMaya.MGlobal.displayInfo(self.export_command)
 
+    def import_cache(self):
+
+        """
+        Imports an alembic cache into a maya scene.
+        :return:
+        """
+
+        try:
+            mel.eval(self.import_command)
+        finally:
+            OpenMaya.MGlobal.displayInfo(self.import_command)
+
     def set_export_command(self):
 
         """
@@ -362,6 +381,24 @@ class AlembicCache(object):
                 root=self.root_geometries,
                 renderable_only=renderable_only,
                 user_attributes=self.user_attributes_string,
+                file_path=self.file_path
+            )
+
+    def set_import_command(self):
+
+        """
+        Formats and creates the export command
+        :return:
+        """
+
+        reparent = ""
+        if self.import_parent != "":
+            reparent = ' -reparent \"{0}\"'.format(self.import_parent)
+
+        self.import_command = \
+            'AbcImport -mode {import_mode}{reparent} \"{file_path}\";'.format(
+                import_mode=self.import_mode,
+                reparent=reparent,
                 file_path=self.file_path
             )
 

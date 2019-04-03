@@ -15,6 +15,20 @@ user or master
 further data
 """
 
+global_data = [
+    "date_time",
+    "message",
+    "folder_location",
+    "relative_folder_location",
+    "application",
+    "file_types",
+    "version_number",
+    "publish_type",
+    "long_name"
+]
+applications = ["maya", "houdini"]
+publish_types = ["publish", "user"]
+
 
 class MetaData(object):
 
@@ -27,32 +41,12 @@ class MetaData(object):
         use the 'ancillary_data' dictionary to set data based on task / type
         """
 
-        self.global_data = [
-            "date_time",
-            "message",
-            "folder_location",
-            "relative_folder_location",
-            "application",
-            "file_types",
-            "version_number",
-            "publish_type",
-            "long_name"
-        ]
-
-        self.further_data = [
-            "start_frame",
-            "end_frame",
-            "pre_roll_start_frame"
-        ]
-
         # global data
         self.message = ""
         self.folder_location = ""
         self.relative_folder_location = ""
         self.application = ""
-        self.applications = ["maya", "houdini"]
         self.file_types = list()
-        self._publish_types = ["publish", "user"]
         self.version_number = -1
         self.publish_type = ""
         self.long_name = ""
@@ -82,6 +76,19 @@ class MetaData(object):
         self.publish_type = self.input_data["publish_type"]
         self.long_name = self.input_data["long_name"]
         self.ancillary_data = self.input_data["ancillary_data"]
+
+    def print_version(self):
+
+        """
+        Prints all attributes out nicely.
+        :return:
+        """
+
+        for key, val in sorted(self.__dict__.items()):
+            if type(val) == list:
+                print "\t", key, ":\n\t\t", "\n\t\t".join(val)
+            else:
+                print "\t", key, ":", val
 
     def set_globals(self):
 
@@ -143,6 +150,6 @@ class MetaData(object):
         :return:
         """
 
-        for _global in self.global_data:
+        for _global in global_data:
             if _global not in self.output_data:
                 raise Warning("MetaData Global: '{0}' has not been set.".format(_global))

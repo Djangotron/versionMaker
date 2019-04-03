@@ -32,12 +32,22 @@ class Version(object):
         # All the versions
         self.folder_versions = list()
         self.folder_version_paths = list()
+        self.folder_version_numbers = list()
 
         self.latest_folder_version = 0
 
         self.number_padding = 3
 
         self.verbose = False
+
+    def _get_folder_version_number(self, folder=""):
+
+        """
+        Returns the folder number from the string
+        :return:
+        """
+
+        return int(folder.rpartition(self.version_prefix)[2])
 
     def _set_folder_version_string(self):
 
@@ -121,17 +131,19 @@ class Version(object):
         :return: string - name of the latest version
         """
 
-        self.get_folder_versions(search_string=search_string)
+        self.set_version(new_version=False)
 
-        num_versions = len(self.folder_versions)
-        self.latest_folder_version = num_versions
-
-        if num_versions == 0:
-            latest_version = self.folder_versions
-        else:
-            latest_version = self.folder_versions[-1]
-
-        return latest_version
+        # self.get_folder_versions(search_string=search_string)
+        #
+        # num_versions = len(self.folder_versions)
+        # self.latest_folder_version = num_versions
+        #
+        # if num_versions == 0:
+        #     latest_version = self.folder_versions
+        # else:
+        #     latest_version = self.folder_versions[-1]
+        #
+        # return latest_version
 
     def get_folder_versions(self, search_string=None):
 
@@ -162,6 +174,11 @@ class Version(object):
             folder_version_path = "{0}/{1}".format(self.path_to_versions, _folder)
             if folder_version_path not in self.folder_version_paths:
                 self.folder_version_paths.append(folder_version_path)
+
+            # Append the folder number as well
+            version_number = self._get_folder_version_number(folder=_folder)
+            if version_number not in self.folder_version_numbers:
+                self.folder_version_numbers.append(version_number)
 
     def print_version(self):
 
@@ -204,7 +221,8 @@ class Version(object):
 
         # If there are none, create version 1
         if len_versions is 0:
-            self._set_folder_version_path()
+            if new_version:
+                self._set_folder_version_path()
 
         else:
             latest = int(self.folder_versions[-1].rpartition(self.version_prefix)[2])

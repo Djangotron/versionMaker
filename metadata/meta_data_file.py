@@ -23,6 +23,23 @@ class ReadFile(handler.MetaData):
 
         self.current_time = str()
 
+    def get_file(self):
+
+        """
+        Searches the 'meta_data_folder_path' to get the meta data file.
+
+        Sets the 'meta_data_file_name' and 'meta_data_file_path'
+
+        :return:
+        """
+
+        all_files = os.listdir(self.meta_data_folder_path)
+        for _file in all_files:
+            if _file.find(meta_data.META_DATA_SUFFIX) != -1:
+                self.meta_data_file_name = _file
+
+        self.meta_data_file_path = "{0}/{1}".format(self.meta_data_folder_path, self.meta_data_file_name)
+
     def load_file(self):
 
         """
@@ -38,7 +55,7 @@ class ReadFile(handler.MetaData):
         self.input_data = json.load(json_file)
         json_file.close()
 
-
+        self.get_globals()
 
 
 class WriteFile(handler.MetaData):

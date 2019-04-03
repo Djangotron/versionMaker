@@ -19,4 +19,4 @@ class ImportVersion(hierarchy.Hierarchy):
         super(ImportVersion, self).__init__()
 
         self.version = folder.Version()
-        self.meta_data = meta_data_file.WriteFile()
+        self.meta_data = meta_data_file.ReadFile()

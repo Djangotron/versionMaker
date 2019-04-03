@@ -1,5 +1,6 @@
 from maya import cmds
-from ..application.maya.export import animation
+from ...application.maya.export_maya import animation
+from ...application.maya.import_maya import animation
 
 
 def export_layout_for_sequence():
@@ -26,7 +27,7 @@ def export_layout_for_sequence():
                     cam = child
 
         cameras.append(cam)
-        sequnce, shot_number = cam.split("|")[-1].split("__")
+        sequence, shot_number = cam.split("|")[-1].split("__")
         frame_number = int(cmds.getAttr("{0}.notes".format(cam_grp)).split(" ")[1])
         frame_nums.append(shot_number)
 
@@ -46,7 +47,7 @@ def export_layout_for_sequence():
             afp.show_folder = "sol"
             afp.partition = "3D"
             afp.division = "sequences"
-            afp.sequence = sequnce
+            afp.sequence = sequence
             afp.shot = shot_number
             afp.task = "layout"
             afp.asset = name
@@ -73,7 +74,7 @@ def import_layout_for_shot(sequence="SF", shot="0030", asset=""):
     :return:
     """
 
-    afp = animation.AnimationFilmPublish()
+    afp = animation.AnimationFilmImport()
     afp.show_folder_location = "D:/Google Drive/Projects"
     afp.show_folder = "sol"
     afp.partition = "3D"
@@ -82,3 +83,6 @@ def import_layout_for_shot(sequence="SF", shot="0030", asset=""):
     afp.shot = shot
     afp.task = "layout"
     afp.asset = asset
+    afp()
+
+    afp.import_alembic_cache()

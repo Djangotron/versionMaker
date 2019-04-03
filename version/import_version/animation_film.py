@@ -3,7 +3,7 @@ from .. import import_version
 from ...constants.film import hierarchy
 
 
-class ImportAnimationVersion(import_version.ExportVersion, hierarchy.Hierarchy):
+class ImportAnimationVersion(import_version.ImportVersion, hierarchy.Hierarchy):
 
     def __init__(self):
 
@@ -23,6 +23,15 @@ class ImportAnimationVersion(import_version.ExportVersion, hierarchy.Hierarchy):
         #
         self.pre_roll_start_frame = None
         self.post_roll_end_frame = None
+
+    def get_version(self):
+
+        """
+        Gets the latest version based on the
+        :return:
+        """
+
+        print self.version.get_latest_version()
 
     def set_shot(self, partition, division, sequence, shot, task):
 

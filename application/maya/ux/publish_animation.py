@@ -3,7 +3,7 @@ from PySide2.QtGui import *
 from shiboken2 import wrapInstance
 import maya.OpenMayaUI as apiUI
 import utilities
-from ..export import animation
+from ..export_maya import animation
 
 
 class AnimationPublishWindow(QtCore.QObject):
