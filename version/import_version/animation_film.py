@@ -130,3 +130,34 @@ class ImportAnimationVersion(import_version.ImportVersion, hierarchy.Hierarchy):
         }
 
         return return_dict
+
+    def return_shot_numbers(self, partition, division, sequence):
+
+        """
+        Returns the available shots from the directory
+        :param string partition:
+        :param string division:
+        :param string sequence:
+        :return:
+        """
+
+        self.show_sequences_path = self.show_sequences_path.format(
+            show_path=self.show_folder_location,
+            show=self.show_folder,
+            production=self.production_folder,
+            partition=partition,
+            division=division,
+            sequence=sequence
+        )
+
+        shot_folders = list()
+
+        # test to make sure this is not a file
+        for _folder in os.listdir(self.show_sequences_path):
+            has_period = _folder.find(".") != -1
+            if has_period:
+                continue
+
+            shot_folders.append(_folder)
+
+        return shot_folders

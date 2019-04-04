@@ -39,15 +39,6 @@ class ImportVersion(animation_film.ImportAnimationVersion):
         self.maya_output_file_paths = list()
         self.maya_output_file_names = list()
 
-    def alembic_cache_setup(self):
-
-        """
-        Prepare an alembic cache to input.
-
-        The alembic cache
-        :return:
-        """
-
     def find_alembic_file(self):
 
         """
@@ -112,10 +103,6 @@ class AnimationFilmImport(ImportVersion):
         self.verbose = False
 
         self.import_alembic_under_asset_transform = True
-
-        self.export_alembic = False
-        self.export_master_scene = False
-        self.export_offline_file = False
 
     def __call__(self):
 
