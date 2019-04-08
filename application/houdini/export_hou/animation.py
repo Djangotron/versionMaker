@@ -26,37 +26,19 @@ class ExportVersion(animation_film.ExportAnimationVersion):
         self.meta_data.application = "houdini"
 
         # Write alembic cache
-        self.alembic_class = alembic.AlembicCache()
+        self.alembic_class = alembic.AlembicArchive()
         self.cache_objects = list()
         self.cache_sets = list()
 
-        self.maya_output_directory = ""
-        self.maya_output_file_path = ""
-        self.maya_output_file_name = ""
+        self.houdini_output_directory = ""
+        self.houdini_output_file_path = ""
+        self.houdini_output_file_name = ""
+        self.file_extension = "png"
 
-        self.maya_output_file_paths = list()
-        self.maya_output_file_names = list()
+        self.houdini_output_file_paths = list()
+        self.houdini_output_file_names = list()
 
-    def query_cache_sets(self):
-
-        """
-        Checks cache sets for objects to add to the cache
-        :return:
-        """
-
-        for cache_set in self.cache_sets:
-
-            if not cmds.objectType(cache_set) == "objectSet":
-
-                set_objects = cmds.sets(cache_set, query=True)
-                if set_objects is None:
-                    cmds.warning("No Objects found in set: '{0}'".format(cache_set))
-
-                for set_obj in set_objects:
-                    if set_obj not in self.cache_objects:
-                        self.cache_objects.append(set_obj)
-
-    def alembic_cache_setup(self):
+    def setup(self):
 
         """
         Prepare an alembic cache to output.
@@ -65,37 +47,16 @@ class ExportVersion(animation_film.ExportAnimationVersion):
         :return:
         """
 
-        # set the referenced cache objects
-        self.alembic_class.cache_objects = self.cache_objects
-
-        if "alembic" not in self.meta_data.file_types:
-            self.meta_data.file_types.append("alembic")
-
-        self.set_alembic_name()
-
         # Set the time line
-        if self.pre_roll_start_frame is not None:
-            self.alembic_class.pre_roll_frame = self.start_frame
-
         self.alembic_class.start_frame = self.start_frame
         self.alembic_class.end_frame = self.end_frame
 
-        self.alembic_class.file_path = self.maya_output_file_path
+        self.alembic_class.file_path = self.houdini_output_file_path
 
         # Set the alembic file paths to the ancillary_data
-        self.meta_data.ancillary_data["alembic_paths"] = self.maya_output_file_paths
-        self.meta_data.ancillary_data["alembic_names"] = self.maya_output_file_names
+        self.meta_data.ancillary_data["alembic_paths"] = self.houdini_output_file_paths
+        self.meta_data.ancillary_data["alembic_names"] = self.houdini_output_file_names
         self.meta_data.ancillary_data["cache_objects"] = self.cache_objects
-
-    def alembic_cache_write(self):
-
-        """
-        Write an alembic cache to disc.
-        :return:
-        """
-
-        self.alembic_class()
-        self.alembic_class.export()
 
     def save_master_scene(self):
 
@@ -104,7 +65,7 @@ class ExportVersion(animation_film.ExportAnimationVersion):
         :return:
         """
 
-    def set_alembic_name(self):
+    def set_name(self):
 
         """
         Create the alembic name and path attributes
@@ -112,32 +73,32 @@ class ExportVersion(animation_film.ExportAnimationVersion):
         """
 
         # make sure you
-        if self.maya_output_file_name == "":
-            raise NameError("output_file_name not set for alembic")
+        if self.houdini_output_file_name == "":
+            raise NameError("output_file_name not set")
 
         # make sure the file extension is set
-        if self.maya_output_file_name.find(".abc") == -1:
-            self.maya_output_file_name = "{0}.abc".format(self.maya_output_file_name)
+        if self.houdini_output_file_name.find(".{0}".format(self.file_extension)) == -1:
+            self.houdini_output_file_name = "{0}.{1}".format(self.houdini_output_file_name, self.file_extension)
 
         # Append to the names list
-        if self.maya_output_file_name not in self.maya_output_file_names:
-            self.maya_output_file_names.append(self.maya_output_file_name)
+        if self.houdini_output_file_name not in self.houdini_output_file_names:
+            self.houdini_output_file_names.append(self.houdini_output_file_name)
 
         # make sure you have a directory to put the file in
-        if self.maya_output_directory == "":
+        if self.houdini_output_directory == "":
             raise RuntimeError("'output_file_name' not set for alembic")
 
-        if self.maya_output_file_path == "":
-            self.maya_output_file_path = "{0}/{1}".format(
-                self.maya_output_directory,
-                self.maya_output_file_name
+        if self.houdini_output_file_path == "":
+            self.houdini_output_file_path = "{0}/{1}".format(
+                self.houdini_output_directory,
+                self.houdini_output_file_name
             )
 
         # Append to the names list
-        if self.maya_output_file_path not in self.maya_output_file_paths:
-            self.maya_output_file_paths.append(self.maya_output_file_path)
+        if self.houdini_output_file_path not in self.houdini_output_file_paths:
+            self.houdini_output_file_paths.append(self.houdini_output_file_path)
 
-        return self.maya_output_file_name, self.maya_output_file_path
+        return self.houdini_output_file_name, self.houdini_output_file_path
 
 
 class AnimationFilmPublish(ExportVersion):
@@ -199,19 +160,15 @@ class AnimationFilmPublish(ExportVersion):
         new_version = self.version.create_version(search_string=self.asset)
 
         self.meta_data.version_number = self.version.version
-
-        # If we will export the data
-        if self.export_alembic:
-            self.maya_output_directory = self.version.folder_version_path
-            self.maya_output_file_name = self.version.folder_version
-            self.alembic_cache_setup()
+        self.houdini_output_directory = self.version.folder_version_path
+        self.houdini_output_file_name = self.version.folder_version
+        self.setup()
 
         # Set the output data
         self.set_animation_export_variable()
 
         self.meta_data.version_file_path = new_version
         self.meta_data.meta_data_file_name = self.version.folder_version
-
         self.meta_data.meta_data_folder_path = self.version.folder_version_path
 
         self.meta_data.create_file()

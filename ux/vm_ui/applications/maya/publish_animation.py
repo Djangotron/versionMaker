@@ -1,14 +1,11 @@
-from PySide2 import QtCore, QtUiTools
+from PySide2 import QtCore
 from PySide2.QtGui import *
-from shiboken2 import wrapInstance
-import maya.OpenMayaUI as apiUI
 import utilities
-from ..export_maya import animation
 
 
 class AnimationPublishWindow(QtCore.QObject):
 
-    def __init__(self, parent=utilities.getMayaWindow()):
+    def __init__(self, parent=utilities.get_maya_window()):
         """
 
         :param parent:
