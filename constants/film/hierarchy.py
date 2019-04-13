@@ -29,6 +29,7 @@ class Hierarchy(object):
         self.shot_name = ""
         self.task_name = ""
 
+        self.show_path = "{show_path}/{show}"
         self.show_partition_path = "{show_path}/{show}/{production}/{partition}"
         self.show_divisions_path = "{show_path}/{show}/{production}/{partition}/{division}"
         self.show_sequences_path = "{show_path}/{show}/{production}/{partition}/{division}/{sequence}"
@@ -86,7 +87,7 @@ class Hierarchy(object):
         if "PARTITION" not in os.environ:
             raise KeyError("Envronment PARTITION Variable not set")
 
-        self.sequence_name = os.environ["PARTITION"].replace(os.environ["PARTITION"]+"/sequences", "")[1:]
+        self.sequence_name = os.environ["PRODUCTION"].replace(os.environ["PRODUCTION"]+"/sequences", "")[1:]
 
         return self.sequence_name
 
