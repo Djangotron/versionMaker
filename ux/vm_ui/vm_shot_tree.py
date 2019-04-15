@@ -30,13 +30,50 @@ class ItemSetup(object):
         self.item_layout.addRow(self.top_row)
 
         # set up the controls
+        # shot
+        self.shot_label = QtWidgets.QLabel("Shot:")
+        self.shot_label_size = QtCore.QSize(50, 25)
+        self.shot_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.shot_label.setFixedSize(self.shot_label_size)
+
+        self.shot_combo_box = QtWidgets.QComboBox()
+        self.shot_combo_box_size = QtCore.QSize(100, 25)
+        self.shot_combo_box.setFixedSize(self.shot_combo_box_size)
+
+        self.shot_label.setBuddy(self.shot_combo_box)
+        self.top_row.addWidget(self.shot_label)
+        self.top_row.addWidget(self.shot_combo_box)
+
+        # task
+        self.task_label = QtWidgets.QLabel("Task:")
+        self.task_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.task_label_size = QtCore.QSize(50, 25)
+        self.task_label.setFixedSize(self.shot_label_size)
+
+        self.task_combo_box = QtWidgets.QComboBox()
+        self.task_combo_box_size = QtCore.QSize(100, 25)
+        self.task_combo_box.setFixedSize(self.task_combo_box_size)
+
+        self.task_label.setBuddy(self.task_combo_box)
+        self.top_row.addWidget(self.task_label)
+        self.top_row.addWidget(self.task_combo_box)
+
+        # delete
         self.delete_button = QtWidgets.QPushButton("Delete")
+        self.delete_button.setDefault(True)
         self.delete_button_size = QtCore.QSize(75, 25)
         self.delete_button.setFixedSize(self.delete_button_size)
+
+        # self.delete_button.clicked.connect(self.delete_self)
+        self.delete_button.clicked.connect(lambda: self.delete_self())
+
         self.top_row.addWidget(self.delete_button)
 
         self.shot = ShotListWidget(None)
-        self.parent_list_widget.insertItem(0, self.shot)
+
+        n_items = self.parent_list_widget.count()
+        index = n_items - 1
+        self.parent_list_widget.insertItem(index, self.shot)
 
         # Set up the shot tree widget
         self.shot_tree = ShotTree(self.parent)
@@ -46,6 +83,18 @@ class ItemSetup(object):
         # Set the size
         self.size = QtCore.QSize(-1, 100)
         self.shot.setSizeHint(self.size)
+
+    def delete_self(self):
+
+        """
+        Sets the parent to delete this widget.
+        :return:
+        """
+
+
+        self.parent.data_list.takeItem(self.parent.data_list.row(self.shot))
+        # self.parent.data_list.removeItemWidget(self.shot)
+
 
 
 class ShotTree(QtWidgets.QTreeWidget):
@@ -68,7 +117,8 @@ class ShotTree(QtWidgets.QTreeWidget):
 
         self.shot_item = QtWidgets.QTreeWidgetItem()
         self.setItemWidget(self.shot_item, 1, self.shot_box)
-        # self.addTopLevelItem(self.shot_item)
+        self.setHeaderHidden(1)
+        self.addTopLevelItem(self.shot_item)
 
     def shot_combo_box_query(self):
 
@@ -90,7 +140,6 @@ class ShotTree(QtWidgets.QTreeWidget):
         path = "{0}/{1}/{2}/{3}/{4}".format(
             self.parent.show_text.text(), production_folder, partition_folder, division_folder, sequence_folder
         )
-        print path
         if not os.path.exists(path):
             return
 
