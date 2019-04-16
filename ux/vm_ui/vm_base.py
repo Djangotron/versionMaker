@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, json
 from PySide2 import QtGui, QtCore, QtWidgets, QtUiTools
 from ...lib_vm import images
 from functools import partial
@@ -26,6 +26,7 @@ class VersionMakerWin(QtWidgets.QWidget):
 
         # copy the hierarchy paths
         self.hierarchy = hierarchy.Hierarchy()
+        self.file_dialog = FileDialog()
 
         # Logo
         vm_logo = icon_path + "version_maker_banner_v01_tenPercent.png"
@@ -35,14 +36,13 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.logo_label = QtWidgets.QLabel(self)
         self.logo_label.setPixmap(QtGui.QPixmap(vm_logo))
 
-        self.file_dialog = FileDialog()
-
         # Create the job
         self.job_path = ""
         self.job_layout = QtWidgets.QVBoxLayout()
         self.job_layout.setStretch(0, 0)
         self.job_layout.setSpacing(0)
         self.job_layout.setContentsMargins(0, 0, 0, 0)
+        self.job_layout.addWidget(self.logo_label)
         self.add_job_box()
 
         #
@@ -50,19 +50,27 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.add_sequence_box()
 
         #
-        self.data_v_box = QtWidgets.QVBoxLayout()
+        self.defaults_layout = QtWidgets.QHBoxLayout()
+        self.add_defaults_box()
 
         # The Ancillary data box
         self.data_list = QtWidgets.QListWidget()
+        self.append_shot_button = QtWidgets.QPushButton("Append Shot")
+        self.append_shot_button.setMinimumHeight(30)
+
         self.main_layout.addWidget(self.data_list)
 
         self.setLayout(self.main_layout)
+
+        # List of shots and associated widgets in the list
+        self.shot_widgets = list()
 
         # window
         self.resize(800, 600)
         self.setParent(parent, QtCore.Qt.Window)
 
-        vm_shot_tree.ItemSetup(self.data_list, self)
+        # vm_shot_tree.ItemSetup(self.data_list, self)
+        self.setup_append_shot_button()
 
     def __call__(self):
 
@@ -73,14 +81,31 @@ class VersionMakerWin(QtWidgets.QWidget):
 
         self.show_text.setText(self.job_path)
 
+    def add_defaults_box(self):
+
+        """
+
+        :return:
+        """
+
+        #
+        self.task_default_label = QtWidgets.QLabel("Current Task: ")
+        self.task_default_combo_box = QtWidgets.QComboBox()
+
+        self.defaults_layout.addWidget(self.task_default_label, QtCore.Qt.AlignLeft)
+        self.defaults_layout.addWidget(self.task_default_combo_box, QtCore.Qt.AlignLeft)
+
+        for task in self.hierarchy.tasks:
+            self.task_default_combo_box.addItem(task)
+
+        self.main_layout.addLayout(self.defaults_layout)
+
     def add_job_box(self):
 
         """
         The Job box is where we set the location of the show
         :return:
         """
-
-        self.job_layout.addWidget(self.logo_label)
 
         self.show_label = QtWidgets.QLabel("Show:")
         self.show_line_layout = QtWidgets.QHBoxLayout()
@@ -135,6 +160,7 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.division_combo_box = QtWidgets.QComboBox()
         self.sequence_combo_box = QtWidgets.QComboBox()
 
+        #
         combo_box_row = 1
         self.sequence_grid.addWidget(self.production_combo_box, combo_box_row, 0, label_row_span, label_column_span, QtCore.Qt.AlignTop)
         self.sequence_grid.addWidget(self.partition_combo_box, combo_box_row, 1, label_row_span, label_column_span, QtCore.Qt.AlignTop)
@@ -147,6 +173,44 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.division_combo_box.currentIndexChanged.connect(self.sequence_combo_box_query)
 
         self.main_layout.addLayout(self.sequence_grid)
+
+    def append_shot(self):
+
+        """
+
+        :return:
+        """
+
+        shot = vm_shot_tree.ItemSetup(self.data_list, self)
+        self.shot_widgets.append(shot)
+
+    def clear_combo_box(self, combo_box):
+
+        """
+
+        :param QtWidget.QComboBox combo_box:
+        :return:
+        """
+
+        num_options = combo_box.count()
+        for int_option in range(num_options):
+            val = (num_options - 1) - int_option
+            combo_box.removeItem(val)
+
+    def setup_append_shot_button(self):
+
+        """
+        Creates the append button.
+        :return:
+        """
+
+        self.append_shot_button_item = QtWidgets.QListWidgetItem()
+
+        index = self.data_list.count()-1
+        self.data_list.insertItem(index, self.append_shot_button_item)
+        self.data_list.setItemWidget(self.append_shot_button_item, self.append_shot_button)
+
+        self.append_shot_button.clicked.connect(lambda: self.append_shot())
 
     def show_text_edit(self):
 
@@ -177,7 +241,7 @@ class VersionMakerWin(QtWidgets.QWidget):
         :return:
         """
 
-        clear_combo_box(self.production_combo_box)
+        self.clear_combo_box(self.production_combo_box)
 
         path = self.show_text.text()
         if not os.path.exists(path):
@@ -217,7 +281,7 @@ class VersionMakerWin(QtWidgets.QWidget):
         if not os.path.exists(self.show_text.text()):
             return
 
-        clear_combo_box(self.partition_combo_box)
+        self.clear_combo_box(self.partition_combo_box)
 
         production_folder = self.production_combo_box.itemText(self.production_combo_box.currentIndex())
 
@@ -228,7 +292,6 @@ class VersionMakerWin(QtWidgets.QWidget):
         folders = list()
         for item in os.listdir(path):
             item_path = "{0}/{1}".format(path, item)
-            print os.path.isfile(item_path), item_path
             if os.path.isfile(item_path):
                 continue
 
@@ -257,7 +320,7 @@ class VersionMakerWin(QtWidgets.QWidget):
         if not os.path.exists(self.show_text.text()):
             return
 
-        clear_combo_box(self.division_combo_box)
+        self.clear_combo_box(self.division_combo_box)
 
         production_folder = self.production_combo_box.itemText(self.production_combo_box.currentIndex())
         partition_folder = self.partition_combo_box.itemText(self.partition_combo_box.currentIndex())
@@ -296,7 +359,7 @@ class VersionMakerWin(QtWidgets.QWidget):
         if not os.path.exists(self.show_text.text()):
             return
 
-        clear_combo_box(self.sequence_combo_box)
+        self.clear_combo_box(self.sequence_combo_box)
 
         production_folder = self.production_combo_box.itemText(self.production_combo_box.currentIndex())
         partition_folder = self.partition_combo_box.itemText(self.partition_combo_box.currentIndex())
@@ -362,17 +425,3 @@ class FileDialog(QtWidgets.QFileDialog):
     def create(self):
 
         self.folder_name = self.getExistingDirectory()
-
-
-def clear_combo_box(combo_box):
-
-    """
-
-    :param QtWidget.QComboBox combo_box:
-    :return:
-    """
-
-    num_options = combo_box.count()
-    for int_option in range(num_options):
-        val = (num_options - 1) - int_option
-        combo_box.removeItem(val)
