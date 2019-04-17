@@ -17,6 +17,8 @@ class ItemSetup(QtWidgets.QWidget):
         self.parent_list_widget = parent_list_widget
         self.parent = parent
 
+        self.index = self.parent_list_widget
+
         # The frame is the widget that can hold the layout
         self.item_frame = QtWidgets.QFrame()
         self.item_frame.setLineWidth(0)
@@ -71,16 +73,22 @@ class ItemSetup(QtWidgets.QWidget):
         self.parent.task_default_combo_box.currentIndexChanged.connect(self.task_combo_box_query)
         self.delete_button.clicked.connect(lambda: self.delete_self())
 
+        #
         self.shot = ShotListWidget(None)
 
         n_items = self.parent_list_widget.count()
-        index = n_items - 1
-        self.parent_list_widget.insertItem(index, self.shot)
+        self.index = n_items - 1
+        self.parent_list_widget.insertItem(self.index, self.shot)
 
         # Set up the shot tree widget
         self.shot_tree = ShotTree(self.parent)
+        self.shot_tree.index = self.index
+        self.shot_tree.shot_combo_box = self.shot_combo_box
+        self.shot_tree.task_combo_box = self.task_combo_box
         self.item_layout.addRow(self.shot_tree)
         self.parent_list_widget.setItemWidget(self.shot, self.item_frame)
+
+        self.task_combo_box.currentIndexChanged.connect(self.shot_tree.version_query)
 
         # Set the size
         self.size = QtCore.QSize(-1, 100)
@@ -98,6 +106,9 @@ class ItemSetup(QtWidgets.QWidget):
         self.parent.sequence_combo_box.currentIndexChanged.disconnect(self.shot_combo_box_query)
         self.shot_combo_box.currentIndexChanged.disconnect(self.task_combo_box_query)
         self.parent.task_default_combo_box.currentIndexChanged.disconnect(self.task_combo_box_query)
+
+        # Remove self from the parents list of available shot widgets
+        self.parent.shot_widgets.pop(self.parent.shot_widgets.index(self))
 
         self.parent.data_list.takeItem(self.parent.data_list.row(self.shot))
 
@@ -201,9 +212,12 @@ class ShotTree(QtWidgets.QTreeWidget):
 
         super(ShotTree, self).__init__(parent)
 
+        self.shot_combo_box = None
+        self.task_combo_box = None
+
         # VersionMakerWin
         self.parent = parent
-        self.setColumnCount(3)
+        self.setColumnCount(1)
 
         self.shot_box = QtWidgets.QComboBox()
 
@@ -216,7 +230,55 @@ class ShotTree(QtWidgets.QTreeWidget):
         self.size_policy.setHorizontalPolicy(QtWidgets.QSizePolicy.Minimum)
         self.setSizePolicy(self.size_policy)
 
-        # self.shot_item.addChild(ShotTaskAssetItem())
+        self.index = -1
+
+    def version_query(self):
+
+        """
+        Sets the shot combo box on the
+        :return:
+        """
+
+        if not os.path.exists(self.parent.show_text.text()):
+            return
+
+        production_folder = self.parent.production_combo_box.itemText(self.parent.production_combo_box.currentIndex())
+        partition_folder = self.parent.partition_combo_box.itemText(self.parent.partition_combo_box.currentIndex())
+        division_folder = self.parent.division_combo_box.itemText(self.parent.division_combo_box.currentIndex())
+        sequence_folder = self.parent.sequence_combo_box.itemText(self.parent.sequence_combo_box.currentIndex())
+
+        shot_folder = self.shot_combo_box.itemText(self.shot_combo_box.currentIndex())
+        task_folder = self.task_combo_box.itemText(self.task_combo_box.currentIndex())
+
+        path = "{0}/{1}/{2}/{3}/{4}/{5}/{6}/{5}__publish/".format(
+            self.parent.show_text.text(),
+            production_folder,
+            partition_folder,
+            division_folder,
+            sequence_folder,
+            shot_folder,
+            task_folder,
+        )
+        if not os.path.exists(path):
+            return
+
+        folders = list()
+        for item in os.listdir(path):
+            item_path = "{0}/{1}".format(path, item)
+            if os.path.isfile(item_path):
+                continue
+            else:
+                folders.append(item)
+
+        index = -1
+        if folders == list():
+            return
+        else:
+            for int_folder, folder in enumerate(folders):
+                print folder
+                item = ShotTaskAssetItem()
+                item.setText(0, folder)
+                self.shot_item.addChild(item)
 
 
 class ShotListWidget(QtWidgets.QListWidgetItem):
@@ -228,8 +290,6 @@ class ShotListWidget(QtWidgets.QListWidgetItem):
         """
 
         super(ShotListWidget, self).__init__(parent)
-
-        # self.addChild(QtWidgets.QListWidgetItem())
 
 
 class ShotTaskAssetItem(QtWidgets.QTreeWidgetItem):
