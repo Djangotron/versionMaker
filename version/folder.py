@@ -2,6 +2,19 @@ import os
 import utilities
 
 
+def return_type_folder(folder_version):
+
+    """
+    Returns the task_folder from the
+    :param string folder_version:
+    :return:
+    """
+
+    ver = Version()
+
+    return folder_version.partition(ver.version_prefix)[0]
+
+
 class Version(object):
 
     def __init__(self):

@@ -27,6 +27,7 @@ class Hierarchy(object):
         self.division_name = ""
         self.sequence_name = ""
         self.shot_name = ""
+        self.asset_name = ""
         self.task_name = ""
 
         self.show_path = "{show_path}/{show}"
@@ -67,6 +68,15 @@ class Hierarchy(object):
         self.software_houdini = "houdini"
         self.software_publish = "publish"
         self.three_d_software = (self.software_publish, self.software_maya, self.software_houdini)
+
+    def return_asset_name(self):
+
+        """
+
+        :return:
+        """
+
+
 
     def relative_task_asset_path(self):
 

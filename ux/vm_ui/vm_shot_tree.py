@@ -2,7 +2,7 @@ import sys, os
 from PySide2 import QtGui, QtCore, QtWidgets, QtUiTools
 from ...lib_vm import images
 from functools import partial
-from ...version import utilities
+from ...version import folder, utilities
 
 
 class ItemSetup(QtWidgets.QWidget):
@@ -14,6 +14,8 @@ class ItemSetup(QtWidgets.QWidget):
         :param parent_list_widget:
         """
 
+        super(ItemSetup, self).__init__()
+
         self.parent_list_widget = parent_list_widget
         self.parent = parent
 
@@ -24,9 +26,15 @@ class ItemSetup(QtWidgets.QWidget):
         self.item_frame.setLineWidth(0)
         self.item_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
 
+        self.item_frame_size_policy = QtWidgets.QSizePolicy()
+        # self.size_policy.setHorizontalPolicy(QtWidgets.QSizePolicy.MinimumExpanding)
+        self.item_frame_size_policy.setVerticalPolicy(QtWidgets.QSizePolicy.Expanding)
+        self.item_frame.setSizePolicy(self.item_frame_size_policy)
+
         # the layout can hold the widgets
         self.item_layout = QtWidgets.QFormLayout(self.item_frame)
         self.item_layout.setSpacing(0)
+        self.item_layout.setFieldGrowthPolicy(QtWidgets.QFormLayout.ExpandingFieldsGrow)
 
         self.top_row = QtWidgets.QHBoxLayout()
         self.item_layout.addRow(self.top_row)
@@ -60,6 +68,13 @@ class ItemSetup(QtWidgets.QWidget):
         self.top_row.addWidget(self.task_label)
         self.top_row.addWidget(self.task_combo_box)
 
+        # self.spacer_size
+        # self.spacer = QtWidgets.QSpacerItem(100, 25, )
+        # self.top_row.addWidget(self.spacer)
+        # self.spacer_size_policy = QtWidgets.QSizePolicy()
+        # self.spacer_size_policy.setHorizontalPolicy(QtWidgets.QSizePolicy.Minimum)
+        # self.spacer.setSizePolicy(self.spacer_size_policy)
+
         # delete
         self.delete_button = QtWidgets.QPushButton("Delete")
         self.delete_button.setDefault(True)
@@ -83,6 +98,7 @@ class ItemSetup(QtWidgets.QWidget):
         # Set up the shot tree widget
         self.shot_tree = ShotTree(self.parent)
         self.shot_tree.index = self.index
+        self.shot_tree.item_frame = self.item_frame
         self.shot_tree.shot_combo_box = self.shot_combo_box
         self.shot_tree.task_combo_box = self.task_combo_box
         self.item_layout.addRow(self.shot_tree)
@@ -90,9 +106,13 @@ class ItemSetup(QtWidgets.QWidget):
 
         self.task_combo_box.currentIndexChanged.connect(self.shot_tree.version_query)
 
-        # Set the size
-        self.size = QtCore.QSize(-1, 100)
-        self.shot.setSizeHint(self.size)
+        # Set the size from the child widgets
+        self.shot.setSizeHint(self.item_frame.sizeHint())
+
+        self.size_policy = QtWidgets.QSizePolicy()
+        # self.size_policy.setHorizontalPolicy(QtWidgets.QSizePolicy.MinimumExpanding)
+        self.size_policy.setVerticalPolicy(QtWidgets.QSizePolicy.Minimum)
+        self.setSizePolicy(self.size_policy)
 
         self.shot_combo_box_query()
 
@@ -212,22 +232,25 @@ class ShotTree(QtWidgets.QTreeWidget):
 
         super(ShotTree, self).__init__(parent)
 
+        self.item_frame = None
         self.shot_combo_box = None
         self.task_combo_box = None
 
         # VersionMakerWin
         self.parent = parent
-        self.setColumnCount(1)
+        self.setColumnCount(2)
 
         self.shot_box = QtWidgets.QComboBox()
 
         self.shot_item = QtWidgets.QTreeWidgetItem()
         self.setItemWidget(self.shot_item, 1, self.shot_box)
-        self.setHeaderHidden(1)
-        self.addTopLevelItem(self.shot_item)
+        self.column_names = ["Asset", ""]
+        self.setHeaderLabels(self.column_names)
+        # self.setHeaderHidden(1)
 
         self.size_policy = QtWidgets.QSizePolicy()
-        self.size_policy.setHorizontalPolicy(QtWidgets.QSizePolicy.Minimum)
+        self.size_policy.setHorizontalPolicy(QtWidgets.QSizePolicy.MinimumExpanding)
+        self.size_policy.setVerticalPolicy(QtWidgets.QSizePolicy.Maximum)
         self.setSizePolicy(self.size_policy)
 
         self.index = -1
@@ -238,6 +261,8 @@ class ShotTree(QtWidgets.QTreeWidget):
         Sets the shot combo box on the
         :return:
         """
+
+        self.clear()
 
         if not os.path.exists(self.parent.show_text.text()):
             return
@@ -262,23 +287,41 @@ class ShotTree(QtWidgets.QTreeWidget):
         if not os.path.exists(path):
             return
 
-        folders = list()
+        folders = dict()
         for item in os.listdir(path):
             item_path = "{0}/{1}".format(path, item)
             if os.path.isfile(item_path):
                 continue
             else:
-                folders.append(item)
+                # get the type name
+                type_folder = folder.return_type_folder(item)
 
-        index = -1
+                # Insert the name
+                if type_folder not in folders:
+                    folders[type_folder] = list()
+
+                folders[type_folder].append(item)
+
+        # return if there are no folders
         if folders == list():
             return
-        else:
-            for int_folder, folder in enumerate(folders):
-                print folder
-                item = ShotTaskAssetItem()
-                item.setText(0, folder)
-                self.shot_item.addChild(item)
+
+        # add top level items to the
+        for type_folder, folder_version_names in folders.items():
+
+            # set the name
+            asset_name = type_folder.split("__")[3]
+
+            # create the item
+            item = ShotTaskAssetItem()
+            item.folder_path = path
+            item.asset = asset_name
+            item.type_folder = type_folder
+            item()
+
+            # Set the tree widget
+            item.setText(0, asset_name)
+            self.addTopLevelItem(item)
 
 
 class ShotListWidget(QtWidgets.QListWidgetItem):
@@ -297,9 +340,71 @@ class ShotTaskAssetItem(QtWidgets.QTreeWidgetItem):
     def __init__(self):
 
         """
-        A wrapper for common Qt QTree tasks.
+        A wrapper for common QTreeWidgetItem tasks and settings.
+
+        This houses each individual assets publish versions and file paths.
         """
 
         super(ShotTaskAssetItem, self).__init__()
 
-        self.addChild(QtWidgets.QTreeWidgetItem())
+        self.folder_path = str()
+
+        self.version_class = folder.Version()
+        self.asset = ""
+        self.type_folder = ""  # Type folder is folder name sans version number
+
+        # self.addChild(QtWidgets.QTreeWidgetItem())
+
+    def __call__(self):
+
+        """
+        Call to set version class
+        :return:
+        """
+
+        self.version_class.path_to_versions = self.folder_path
+        self.version_class.type_folder = self.type_folder
+        self.version_class.get_latest_version(search_string=self.asset)
+
+        print "versions:", self.version_class.folder_versions
+
+
+class AssetVersionControl(QtWidgets.QWidget):
+
+    def __init__(self):
+
+        """
+        This is a widget to select the version and run commands on the widget
+        """
+
+        super(AssetVersionControl, self).__init__()
+
+        # The frame is the widget that can hold the layout
+        self.avc_frame = QtWidgets.QFrame()
+        self.avc_frame.setLineWidth(0)
+        self.avc_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
+
+        # set up the controls
+        # shot
+        self.avc_verison_label = QtWidgets.QLabel("Version:")
+        self.shot_label_size = QtCore.QSize(50, 25)
+        self.avc_verison_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.avc_verison_label.setFixedSize(self.shot_label_size)
+
+        self.shot_combo_box = QtWidgets.QComboBox()
+        self.shot_combo_box_size = QtCore.QSize(150, 25)
+        self.shot_combo_box.setFixedSize(self.shot_combo_box_size)
+        self.avc_verison_label.setBuddy(self.shot_combo_box)
+
+
+
+class AncillaryDataWidget(QtWidgets.QWidget):
+
+    def __init__(self):
+
+        """
+        This widget Displays the versions meta data
+        """
+
+        super(AncillaryDataWidget, self).__init__()
+
