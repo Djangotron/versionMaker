@@ -110,7 +110,6 @@ class ItemSetup(QtWidgets.QWidget):
         self.shot.setSizeHint(self.item_frame.sizeHint())
 
         self.size_policy = QtWidgets.QSizePolicy()
-        # self.size_policy.setHorizontalPolicy(QtWidgets.QSizePolicy.MinimumExpanding)
         self.size_policy.setVerticalPolicy(QtWidgets.QSizePolicy.Minimum)
         self.setSizePolicy(self.size_policy)
 
@@ -323,6 +322,9 @@ class ShotTree(QtWidgets.QTreeWidget):
             item.setText(0, asset_name)
             self.addTopLevelItem(item)
 
+            version_box = AssetVersionControl(self.parent, self, item)
+            version_box.set_widget()
+
 
 class ShotListWidget(QtWidgets.QListWidgetItem):
 
@@ -366,36 +368,67 @@ class ShotTaskAssetItem(QtWidgets.QTreeWidgetItem):
         self.version_class.type_folder = self.type_folder
         self.version_class.get_latest_version(search_string=self.asset)
 
-        print "versions:", self.version_class.folder_versions
+        # print "versions:", self.version_class.folder_versions
 
 
 class AssetVersionControl(QtWidgets.QWidget):
 
-    def __init__(self):
+    def __init__(self, parent, parent_tree=None, item=None):
 
         """
         This is a widget to select the version and run commands on the widget
         """
 
-        super(AssetVersionControl, self).__init__()
+        super(AssetVersionControl, self).__init__(parent)
 
         # The frame is the widget that can hold the layout
-        self.avc_frame = QtWidgets.QFrame()
-        self.avc_frame.setLineWidth(0)
-        self.avc_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
+        # self.avc_frame = QtWidgets.QFrame()
+        # self.avc_frame.setLineWidth(0)
+        # self.avc_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
+
+        self.parent_tree = parent_tree
+        self.item = item
+
+        self.frame = QtWidgets.QFrame()
+
+        self.frame.setLineWidth(0)
+        self.frame.setFrameShape(QtWidgets.QFrame.NoFrame)
+
+        # the layout can hold the widgets
+        self.item_layout = QtWidgets.QFormLayout(self.frame)
+        self.item_layout.setSpacing(0)
+        self.item_layout.setFieldGrowthPolicy(QtWidgets.QFormLayout.ExpandingFieldsGrow)
+
+        self.top_row = QtWidgets.QHBoxLayout()
+        self.item_layout.addRow(self.top_row)
 
         # set up the controls
         # shot
         self.avc_verison_label = QtWidgets.QLabel("Version:")
-        self.shot_label_size = QtCore.QSize(50, 25)
+        self.avc_verison_label_size = QtCore.QSize(50, 15)
         self.avc_verison_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        self.avc_verison_label.setFixedSize(self.shot_label_size)
+        self.avc_verison_label.setFixedSize(self.avc_verison_label_size)
 
-        self.shot_combo_box = QtWidgets.QComboBox()
-        self.shot_combo_box_size = QtCore.QSize(150, 25)
-        self.shot_combo_box.setFixedSize(self.shot_combo_box_size)
-        self.avc_verison_label.setBuddy(self.shot_combo_box)
+        self.avc_verison_box = QtWidgets.QComboBox()
+        self.avc_verison_box_size = QtCore.QSize(150, 25)
+        self.avc_verison_box.setFixedSize(self.avc_verison_box_size)
 
+        self.top_row.addWidget(self.avc_verison_label)
+        self.top_row.addWidget(self.avc_verison_box)
+
+        self.avc_verison_label.setBuddy(self.avc_verison_box)
+
+    def set_widget(self):
+
+        """
+
+        :return:
+        """
+
+        print self.item
+        print self.frame
+        print
+        self.parent_tree.setItemWidget(self.item, 1, self.frame)
 
 
 class AncillaryDataWidget(QtWidgets.QWidget):
