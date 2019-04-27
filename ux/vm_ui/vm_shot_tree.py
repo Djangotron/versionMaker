@@ -325,6 +325,9 @@ class ShotTree(QtWidgets.QTreeWidget):
             version_box = AssetVersionControl(self.parent, self, item)
             version_box.set_widget()
 
+            for ver in reversed(item.version_class.folder_versions):
+                version_box.avc_verison_box.addItem(ver)
+
 
 class ShotListWidget(QtWidgets.QListWidgetItem):
 
@@ -368,7 +371,7 @@ class ShotTaskAssetItem(QtWidgets.QTreeWidgetItem):
         self.version_class.type_folder = self.type_folder
         self.version_class.get_latest_version(search_string=self.asset)
 
-        # print "versions:", self.version_class.folder_versions
+        print "versions:", self.version_class.folder_versions
 
 
 class AssetVersionControl(QtWidgets.QWidget):
@@ -410,7 +413,7 @@ class AssetVersionControl(QtWidgets.QWidget):
         self.avc_verison_label.setFixedSize(self.avc_verison_label_size)
 
         self.avc_verison_box = QtWidgets.QComboBox()
-        self.avc_verison_box_size = QtCore.QSize(150, 25)
+        self.avc_verison_box_size = QtCore.QSize(300, 25)
         self.avc_verison_box.setFixedSize(self.avc_verison_box_size)
 
         self.top_row.addWidget(self.avc_verison_label)
@@ -425,9 +428,6 @@ class AssetVersionControl(QtWidgets.QWidget):
         :return:
         """
 
-        print self.item
-        print self.frame
-        print
         self.parent_tree.setItemWidget(self.item, 1, self.frame)
 
 
