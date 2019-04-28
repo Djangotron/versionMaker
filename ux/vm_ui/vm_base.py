@@ -43,15 +43,45 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.job_layout.setSpacing(0)
         self.job_layout.setContentsMargins(0, 0, 0, 0)
         self.job_layout.addWidget(self.logo_label)
-        self.add_job_box()
 
-        #
+        # DIRECTORY TO FIND THE SHOW
+        self.show_label = QtWidgets.QLabel("Show:")
+        self.show_line_layout = QtWidgets.QHBoxLayout()
+        self.show_text = QtWidgets.QLineEdit()
+        self.show_text_button = QtWidgets.QPushButton()
+
+        # Set the button to manually find a folder structure
+        button_logo = icon_path + "mg_icon.png"
+        if is_windows:
+            button_logo = button_logo.replace(os.sep, "/")
+        self.show_text_button.setIcon(QtGui.QIcon(QtGui.QPixmap(button_logo)))
+
+        self.show_text_button.clicked.connect(partial(self.file_dialog_call))
+
+        self.job_layout.addWidget(self.show_label)
+        self.job_layout.addLayout(self.show_line_layout)
+        self.show_line_layout.addWidget(self.show_text)
+        self.show_line_layout.addWidget(self.show_text_button)
+
+        self.main_layout.addLayout(self.job_layout)
+        # self.add_job_box()
+
+        # GRID LAYOUT FOR PRODUCTION / PARTITION / DIVISION / SEQUENCE
         self.sequence_grid = QtWidgets.QGridLayout()
         self.add_sequence_box()
 
-        #
+        # Setup the current task
         self.defaults_layout = QtWidgets.QHBoxLayout()
-        self.add_defaults_box()
+
+        # Set a default task
+        self.task_default_label = QtWidgets.QLabel("Current Task: ")
+        self.task_default_combo_box = QtWidgets.QComboBox()
+        self.defaults_layout.addWidget(self.task_default_label, QtCore.Qt.AlignLeft)
+        self.defaults_layout.addWidget(self.task_default_combo_box, QtCore.Qt.AlignLeft)
+        self.main_layout.addLayout(self.defaults_layout)
+
+        for task in self.hierarchy.tasks:
+            self.task_default_combo_box.addItem(task)
 
         # The Ancillary data box
         self.data_list = QtWidgets.QListWidget()
@@ -80,25 +110,6 @@ class VersionMakerWin(QtWidgets.QWidget):
         """
 
         self.show_text.setText(self.job_path)
-
-    def add_defaults_box(self):
-
-        """
-
-        :return:
-        """
-
-        #
-        self.task_default_label = QtWidgets.QLabel("Current Task: ")
-        self.task_default_combo_box = QtWidgets.QComboBox()
-
-        self.defaults_layout.addWidget(self.task_default_label, QtCore.Qt.AlignLeft)
-        self.defaults_layout.addWidget(self.task_default_combo_box, QtCore.Qt.AlignLeft)
-
-        for task in self.hierarchy.tasks:
-            self.task_default_combo_box.addItem(task)
-
-        self.main_layout.addLayout(self.defaults_layout)
 
     def add_job_box(self):
 
