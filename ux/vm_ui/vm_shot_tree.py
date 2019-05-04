@@ -151,6 +151,16 @@ class ItemSetup(QtWidgets.QWidget):
             col = QtGui.QColor(*BLUE)
         self.shot.setBackground(QtGui.QBrush(col))
 
+    def import_checked_asset(self):
+
+        """
+
+        :return:
+        """
+
+        # Create an import command here from a versionmaker.version
+
+
     def remove_self(self):
 
         """

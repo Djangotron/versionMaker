@@ -161,3 +161,6 @@ class ImportAnimationVersion(import_version.ImportVersion, hierarchy.Hierarchy):
             shot_folders.append(_folder)
 
         return shot_folders
+
+
+# create class to transfer this version to DCC

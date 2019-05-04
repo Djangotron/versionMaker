@@ -10,10 +10,12 @@ def vm_run():
     :return:
     """
 
-    vm_hou = vm_base.VersionMakerWin(parent=utilities.get_houdini_window())
+    vm_hou = vm_base.VersionMakerWin(parent=utilities.get_houdini_window(), application="houdini")
     vm_hou.job_path = hou.getenv("JOB")
     vm_hou.setStyleSheet(hou.qt.styleSheet())
     vm_hou.setProperty("houdiniStyle", True)
     vm_hou.file_dialog.setStyleSheet(hou.qt.styleSheet())
     vm_hou()
     vm_hou.show()
+
+    return vm_hou

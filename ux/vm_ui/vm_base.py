@@ -13,16 +13,18 @@ icon_path = images.__file__.replace(images.__file__.split("\\")[-1], "")
 
 class VersionMakerWin(QtWidgets.QWidget):
 
-    def __init__(self, parent):
+    def __init__(self, parent, application):
 
         """
         Class to
         """
 
-        super(VersionMakerWin, self).__init__()
+        super(VersionMakerWin, self).__init__(parent)
 
         self.setWindowTitle("Version Maker")
         self.main_layout = QtWidgets.QVBoxLayout()
+
+        self.application = application
 
         # copy the hierarchy paths
         self.hierarchy = hierarchy.Hierarchy()
