@@ -104,6 +104,8 @@ class AnimationFilmImport(ImportVersion):
 
         self.import_alembic_under_asset_transform = True
 
+        self.import_as_bounding_box = True
+
     def __call__(self):
 
         """
@@ -113,22 +115,23 @@ class AnimationFilmImport(ImportVersion):
 
         self.version.verbose = self.verbose
 
-        # Set the shot and the asset
-        self.set_shot(
-            partition=self.partition,
-            division=self.division,
-            sequence=self.sequence,
-            shot=self.shot,
-            task=self.task
-        )
-        self.set_asset(asset_name=self.asset, force_create=True)
-
-        # we can get the version after the asset has been set
-        self.version.get_latest_version(search_string=self.asset)
-
         if self.version.folder_version_path == "":
-            cmds.warning("Did not find any versions")
-            return
+            # Set the shot and the asset
+            self.set_shot(
+                partition=self.partition,
+                division=self.division,
+                sequence=self.sequence,
+                shot=self.shot,
+                task=self.task
+            )
+            self.set_asset(asset_name=self.asset, force_create=True)
+
+            # we can get the version after the asset has been set
+            self.version.get_latest_version(search_string=self.asset)
+
+            if self.version.folder_version_path == "":
+                cmds.warning("Did not find any versions")
+                return
 
         # Set the current version to the latest if has not been set
         if self.version_number == -1:
@@ -159,6 +162,29 @@ class AnimationFilmImport(ImportVersion):
 
         if self.import_alembic_under_asset_transform:
             if not cmds.objExists(self.asset):
-                cmds.createNode("transform", name=self.asset)
+                self.asset_parent_transform(name=self.asset)
+                self.alembic_class.import_parent = self.asset
 
         self.alembic_class.import_cache()
+
+    def asset_parent_transform(self, name=""):
+
+        """
+        A transform to parent
+        :param string name:
+        :return:
+        """
+
+        # Create the node
+        cmds.createNode("transform", name=self.asset)
+        cmds.setAttr("{0}.overrideLevelOfDetail".format(self.asset), channelBox=True)
+        cmds.setAttr("{0}.overrideEnabled".format(self.asset), 1)
+        if self.import_as_bounding_box:
+            cmds.setAttr("{0}.overrideLevelOfDetail".format(self.asset), 1)
+
+        # Lock the channels
+        for xform in ("t", "r", "s"):
+            for axis in ("x", "y", "z"):
+                cmds.setAttr(
+                    "{0}.{1}{2}".format(self.asset, xform, axis), lock=True, keyable=False, channelBox=False
+                )

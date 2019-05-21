@@ -151,16 +151,6 @@ class ItemSetup(QtWidgets.QWidget):
             col = QtGui.QColor(*BLUE)
         self.shot.setBackground(QtGui.QBrush(col))
 
-    def import_checked_asset(self):
-
-        """
-
-        :return:
-        """
-
-        # Create an import command here from a versionmaker.version
-
-
     def remove_self(self):
 
         """
@@ -265,10 +255,10 @@ class ItemSetup(QtWidgets.QWidget):
         if folders == list():
             return
         else:
-            for int_folder, folder in enumerate(folders):
-                if folder.find(text) != -1:
+            for int_folder, fldr in enumerate(folders):
+                if fldr.find(text) != -1:
                     index = int_folder
-                self.task_combo_box.addItem(folder)
+                self.task_combo_box.addItem(fldr)
 
         self.task_combo_box.setCurrentIndex(index)
 
@@ -285,6 +275,8 @@ class ShotTree(QtWidgets.QTreeWidget):
 
         super(ShotTree, self).__init__(parent)
 
+        self.shot_asset_dict = dict()
+
         self.item_frame = None
         self.shot_combo_box = None
         self.task_combo_box = None
@@ -299,14 +291,24 @@ class ShotTree(QtWidgets.QTreeWidget):
         self.setItemWidget(self.shot_item, 1, self.shot_box)
         self.column_names = ["Asset", "Version"]
         self.setHeaderLabels(self.column_names)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
         # self.setHeaderHidden(1)
 
         self.size_policy = QtWidgets.QSizePolicy()
         self.size_policy.setHorizontalPolicy(QtWidgets.QSizePolicy.MinimumExpanding)
-        self.size_policy.setVerticalPolicy(QtWidgets.QSizePolicy.Maximum)
+        self.size_policy.setVerticalPolicy(QtWidgets.QSizePolicy.MinimumExpanding)
         self.setSizePolicy(self.size_policy)
 
         self.index = -1
+
+    def import_selected_assets(self):
+
+        """
+
+        :return:
+        """
+
+        # Create an import command here from a versionmaker.version
 
     def version_query(self):
 
@@ -316,9 +318,13 @@ class ShotTree(QtWidgets.QTreeWidget):
         """
 
         self.clear()
+        self.shot_asset_dict = dict()
 
-        if not os.path.exists(self.parent.show_text.text()):
+        show_folder = self.parent.show_text.text()
+        if not os.path.exists(show_folder):
             return
+
+        show_folder_location, slash, show_folder_name = show_folder.rpartition("/")
 
         production_folder = self.parent.production_combo_box.itemText(self.parent.production_combo_box.currentIndex())
         partition_folder = self.parent.partition_combo_box.itemText(self.parent.partition_combo_box.currentIndex())
@@ -328,8 +334,15 @@ class ShotTree(QtWidgets.QTreeWidget):
         shot_folder = self.shot_combo_box.itemText(self.shot_combo_box.currentIndex())
         task_folder = self.task_combo_box.itemText(self.task_combo_box.currentIndex())
 
+        shot_folder_split = shot_folder.rpartition("__")[2]
+        task_folder_split = task_folder.rpartition("__")[2]
+
+        print "test"
+        print shot_folder_split
+        print task_folder_split
+
         path = "{0}/{1}/{2}/{3}/{4}/{5}/{6}/{5}__publish/".format(
-            self.parent.show_text.text(),
+            show_folder,
             production_folder,
             partition_folder,
             division_folder,
@@ -339,6 +352,19 @@ class ShotTree(QtWidgets.QTreeWidget):
         )
         if not os.path.exists(path):
             return
+
+        # Set everything to the output dict
+        ancillary_data = {
+            "path": path,
+            "show_folder_location": show_folder_location,
+            "show_folder_name": show_folder_name,
+            "production_folder": production_folder,
+            "partition": partition_folder,
+            "division": division_folder,
+            "sequence": sequence_folder,
+            "shot": shot_folder_split,
+            "task": task_folder_split
+        }
 
         folders = dict()
         for item in os.listdir(path):
@@ -359,6 +385,7 @@ class ShotTree(QtWidgets.QTreeWidget):
         if folders == list():
             return
 
+        folder_versions = dict()
         # add top level items to the
         for type_folder, folder_version_names in folders.items():
 
@@ -372,11 +399,14 @@ class ShotTree(QtWidgets.QTreeWidget):
             item.type_folder = type_folder
             item()
 
+            # Return the asset versions
+            folder_versions[asset_name] = item.version_class
+            setattr(item, "ancillary_data", ancillary_data)
+
             # Set the tree widget
             item.setText(0, asset_name)
-            self.addTopLevelItem(item)
-
             item.setCheckState(0, QtCore.Qt.Unchecked)
+            self.addTopLevelItem(item)
 
             # set the version box widget to the frame
             version_box = AssetVersionControl(self.parent, self, item)
@@ -391,6 +421,10 @@ class ShotTree(QtWidgets.QTreeWidget):
                 index = item.version_class.folder_versions.index(ver)
                 ver_num = item.version_class.folder_version_numbers[index]
                 version_box.avc_verison_box.addItem(str(ver_num))
+
+        ancillary_data["folder_versions"] = folder_versions
+
+        self.shot_asset_dict[shot_folder] = ancillary_data
 
 
 class ShotListWidget(QtWidgets.QListWidgetItem):
@@ -437,7 +471,7 @@ class ShotTaskAssetItem(QtWidgets.QTreeWidgetItem):
         self.version_class.type_folder = self.type_folder
         self.version_class.get_latest_version(search_string=self.asset)
 
-        print "versions:", self.version_class.folder_versions
+        # print "versions:", self.version_class.folder_versions
 
 
 class AssetVersionControl(QtWidgets.QWidget):
@@ -501,6 +535,7 @@ class AssetVersionControl(QtWidgets.QWidget):
         self.import_button.setDefault(True)
         self.import_button_size = QtCore.QSize(125, 25)
         self.import_button.setFixedSize(self.import_button_size)
+        self.import_button.clicked.connect(self.import_asset)
 
         # STRETCH SPACER
         self.avc_status_spacer = QtWidgets.QSpacerItem(
@@ -524,6 +559,20 @@ class AssetVersionControl(QtWidgets.QWidget):
         # self.avc_status_value_layout.addWidget(self.avc_status_value_label)
 
         self.avc_verison_label.setBuddy(self.avc_verison_box)
+
+    def import_asset(self):
+
+        """
+        set the import button for an asset clicked.
+        :return:
+        """
+
+        version_number = self.avc_verison_box.itemText(self.avc_verison_box.currentIndex())
+        self.parent_tree.parent.import_func(
+            version_dict=self.item.ancillary_data,
+            asset=self.item.asset,
+            version_number=version_number
+        )
 
     def set_widget(self):
 

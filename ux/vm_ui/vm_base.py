@@ -16,7 +16,7 @@ class VersionMakerWin(QtWidgets.QWidget):
     def __init__(self, parent, application):
 
         """
-        Class to
+        Class to import and export version from a window
         """
 
         super(VersionMakerWin, self).__init__(parent)
@@ -24,7 +24,9 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.setWindowTitle("Version Maker")
         self.main_layout = QtWidgets.QVBoxLayout()
 
+        # Application specific data
         self.application = application
+        self.import_func = None
 
         # copy the hierarchy paths
         self.hierarchy = hierarchy.Hierarchy()
@@ -98,7 +100,7 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.shot_widgets = list()
 
         # window
-        self.resize(800, 600)
+        self.resize(900, 600)
         self.setParent(parent, QtCore.Qt.Window)
 
         # vm_shot_tree.ItemSetup(self.data_list, self)

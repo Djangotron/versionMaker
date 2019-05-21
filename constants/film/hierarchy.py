@@ -69,6 +69,16 @@ class Hierarchy(object):
         self.software_publish = "publish"
         self.three_d_software = (self.software_publish, self.software_maya, self.software_houdini)
 
+    def set_from_path(self, path=""):
+
+        """
+
+        :param string path:
+        :return:
+        """
+
+
+
     def return_asset_name(self):
 
         """

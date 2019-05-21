@@ -122,6 +122,7 @@ class AnimationFilmImport(ImportVersion):
         self.set_asset(asset_name=self.asset, force_create=True)
 
         # we can get the version after the asset has been set
+        # if self.version_number == -1:
         self.version.get_latest_version(search_string=self.asset)
 
         if self.version.folder_version_path == "":
@@ -217,6 +218,9 @@ class AnimationFilmImport(ImportVersion):
             raise RuntimeError(
                 "hou_node does not have attribute: '{0}'".format(attribute)
             )
+
+        if self.path_expression == "":
+            self.path_to_path_expression(envrionment_key="JOB")
 
         if use_path_expression:
             node_attr.set(self.path_expression)
