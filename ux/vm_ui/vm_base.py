@@ -100,7 +100,7 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.shot_widgets = list()
 
         # window
-        self.resize(900, 600)
+        self.resize(1000, 600)
         self.setParent(parent, QtCore.Qt.Window)
 
         # vm_shot_tree.ItemSetup(self.data_list, self)
@@ -109,11 +109,22 @@ class VersionMakerWin(QtWidgets.QWidget):
     def __call__(self):
 
         """
-
+        Set the initial combo box settings.
         :return:
         """
 
         self.show_text.setText(self.job_path)
+
+        partition_name = hierarchy.Hierarchy().return_partition_name()
+        set_combo_box(self.partition_combo_box, partition_name)
+
+        sequence_name = hierarchy.Hierarchy().return_sequence_name()
+        set_combo_box(self.sequence_combo_box, sequence_name)
+
+        task_name = hierarchy.Hierarchy().return_task_name()
+        set_combo_box(self.task_default_combo_box, task_name.split("__")[-1])
+
+        self.append_shot()
 
     def add_job_box(self):
 
@@ -192,7 +203,7 @@ class VersionMakerWin(QtWidgets.QWidget):
     def append_shot(self):
 
         """
-
+        Add a shot to the data_list
         :return:
         """
 
@@ -212,42 +223,67 @@ class VersionMakerWin(QtWidgets.QWidget):
             val = (num_options - 1) - int_option
             combo_box.removeItem(val)
 
-    def setup_append_shot_button(self):
+    def division_combo_box_query(self):
 
         """
-        Creates the append button.
-        :return:
-        """
 
-        self.append_shot_button_item = QtWidgets.QListWidgetItem()
-
-        index = self.data_list.count()-1
-        self.data_list.insertItem(index, self.append_shot_button_item)
-        self.data_list.setItemWidget(self.append_shot_button_item, self.append_shot_button)
-
-        self.append_shot_button.clicked.connect(lambda: self.append_shot())
-
-    def show_text_edit(self):
-
-        """
-        when the text is edited this will update the production folder
         :return:
         """
 
         if not os.path.exists(self.show_text.text()):
-
-            # set the hierarchy env variables
-            self.hierarchy.show_folder_path = ""
-            self.hierarchy.show_folder_location = ""
-            self.hierarchy.show_folder = ""
             return
 
-        show_path, slash, show = self.show_text.text().rpartition("/")
+        self.clear_combo_box(self.division_combo_box)
 
-        # set the hierarchy env variables
-        self.hierarchy.show_folder_path = self.show_text.text()
-        self.hierarchy.show_folder_location = show_path
-        self.hierarchy.show_folder = show_path
+        production_folder = self.production_combo_box.itemText(self.production_combo_box.currentIndex())
+        partition_folder = self.partition_combo_box.itemText(self.partition_combo_box.currentIndex())
+
+        path = "{0}/{1}/{2}".format(self.show_text.text(), production_folder, partition_folder)
+        if not os.path.exists(path):
+            return
+
+        folders = list()
+        for item in os.listdir(path):
+            item_path = "{0}/{1}".format(path, item)
+            if os.path.isfile(item_path):
+                continue
+            else:
+                folders.append(item)
+
+        if folders == list():
+            return
+        else:
+            for folder in folders:
+                self.division_combo_box.addItem(folder)
+
+        default_index = 0
+        if "sequences" in folders:
+            default_index = folders.index("sequences")
+
+        self.division_combo_box.setCurrentIndex(default_index)
+
+    def file_dialog_call(self):
+
+        """
+
+        :return:
+        """
+
+        self.file_dialog.create()
+        self.show_text.setText(self.file_dialog.folder_name)
+
+        # self.production_combo_box_query()
+
+    def format_label(self, label_widget, label_name=""):
+
+        """
+
+        :param QWidget.QtWidgets label_widget:
+        :param string label_name:
+        :return:
+        """
+
+        label_widget.setText(label_name)
 
     def production_combo_box_query(self):
 
@@ -325,45 +361,6 @@ class VersionMakerWin(QtWidgets.QWidget):
 
         self.partition_combo_box.setCurrentIndex(default_index)
 
-    def division_combo_box_query(self):
-
-        """
-
-        :return:
-        """
-
-        if not os.path.exists(self.show_text.text()):
-            return
-
-        self.clear_combo_box(self.division_combo_box)
-
-        production_folder = self.production_combo_box.itemText(self.production_combo_box.currentIndex())
-        partition_folder = self.partition_combo_box.itemText(self.partition_combo_box.currentIndex())
-
-        path = "{0}/{1}/{2}".format(self.show_text.text(), production_folder, partition_folder)
-        if not os.path.exists(path):
-            return
-
-        folders = list()
-        for item in os.listdir(path):
-            item_path = "{0}/{1}".format(path, item)
-            if os.path.isfile(item_path):
-                continue
-            else:
-                folders.append(item)
-
-        if folders == list():
-            return
-        else:
-            for folder in folders:
-                self.division_combo_box.addItem(folder)
-
-        default_index = 0
-        if "sequences" in folders:
-            default_index = folders.index("sequences")
-
-        self.division_combo_box.setCurrentIndex(default_index)
-
     def sequence_combo_box_query(self):
 
         """
@@ -398,28 +395,42 @@ class VersionMakerWin(QtWidgets.QWidget):
             for folder in folders:
                 self.sequence_combo_box.addItem(folder)
 
-    def file_dialog_call(self):
+    def setup_append_shot_button(self):
 
         """
-
+        Creates the append button.
         :return:
         """
 
-        self.file_dialog.create()
-        self.show_text.setText(self.file_dialog.folder_name)
+        self.append_shot_button_item = QtWidgets.QListWidgetItem()
 
-        # self.production_combo_box_query()
+        index = self.data_list.count()-1
+        self.data_list.insertItem(index, self.append_shot_button_item)
+        self.data_list.setItemWidget(self.append_shot_button_item, self.append_shot_button)
 
-    def format_label(self, label_widget, label_name=""):
+        self.append_shot_button.clicked.connect(lambda: self.append_shot())
+
+    def show_text_edit(self):
 
         """
-
-        :param QWidget.QtWidgets label_widget:
-        :param string label_name:
+        when the text is edited this will update the production folder
         :return:
         """
 
-        label_widget.setText(label_name)
+        if not os.path.exists(self.show_text.text()):
+
+            # set the hierarchy env variables
+            self.hierarchy.show_folder_path = ""
+            self.hierarchy.show_folder_location = ""
+            self.hierarchy.show_folder = ""
+            return
+
+        show_path, slash, show = self.show_text.text().rpartition("/")
+
+        # set the hierarchy env variables
+        self.hierarchy.show_folder_path = self.show_text.text()
+        self.hierarchy.show_folder_location = show_path
+        self.hierarchy.show_folder = show_path
 
 
 class FileDialog(QtWidgets.QFileDialog):
@@ -440,3 +451,18 @@ class FileDialog(QtWidgets.QFileDialog):
     def create(self):
 
         self.folder_name = self.getExistingDirectory()
+
+
+def set_combo_box(combo_box, value):
+
+    """
+    Simple set value command for combo box that will pass on error.
+
+    :param QtWidgets.QComboBox combo_box:
+    :param string value: Name of the
+    :return:
+    """
+
+    index = combo_box.findText(value)
+    if index != -1:
+        combo_box.setCurrentIndex(index)

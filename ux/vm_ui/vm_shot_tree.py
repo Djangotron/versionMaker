@@ -26,6 +26,9 @@ class ItemSetup(QtWidgets.QWidget):
 
         self.index = self.parent_list_widget
 
+        # Import functions are created
+        self.import_functions = dict()
+
         # The frame is the widget that can hold the layout
         self.item_frame = QtWidgets.QFrame()
         self.item_frame.setLineWidth(0)
@@ -66,7 +69,7 @@ class ItemSetup(QtWidgets.QWidget):
         self.task_label.setFixedSize(self.shot_label_size)
 
         self.task_combo_box = QtWidgets.QComboBox()
-        self.task_combo_box_size = QtCore.QSize(200, 25)
+        self.task_combo_box_size = QtCore.QSize(175, 25)
         self.task_combo_box.setFixedSize(self.task_combo_box_size)
 
         self.task_label.setBuddy(self.task_combo_box)
@@ -81,21 +84,39 @@ class ItemSetup(QtWidgets.QWidget):
         )
         self.top_row.addSpacerItem(self.spacer_1)
 
+        # Deselect
+        self.deselect_button = QtWidgets.QPushButton("Deselect")
+        self.deselect_button.setDefault(True)
+        self.deselect_button_size = QtCore.QSize(75, 25)
+        self.deselect_button.setFixedSize(self.deselect_button_size)
+        self.top_row.addWidget(self.deselect_button, QtCore.Qt.AlignRight)
+        self.top_row.addSpacerItem(self.spacer_1)
+        self.deselect_button.clicked.connect(self.deselect)
+
+        # Deselect
+        self.select_all_button = QtWidgets.QPushButton("Select All")
+        self.select_all_button.setDefault(True)
+        self.select_all_button_size = QtCore.QSize(75, 25)
+        self.select_all_button.setFixedSize(self.select_all_button_size)
+        self.top_row.addWidget(self.select_all_button, QtCore.Qt.AlignRight)
+        self.top_row.addSpacerItem(self.spacer_1)
+        self.select_all_button.clicked.connect(self.select_all)
+
         # Create Asset
         self.create_asset_button = QtWidgets.QPushButton("Create Asset")
         self.create_asset_button.setDefault(True)
-        self.create_asset_button_size = QtCore.QSize(125, 25)
+        self.create_asset_button_size = QtCore.QSize(75, 25)
         self.create_asset_button.setFixedSize(self.create_asset_button_size)
         self.top_row.addWidget(self.create_asset_button, QtCore.Qt.AlignRight)
-
         self.top_row.addSpacerItem(self.spacer_1)
 
         # Create Asset
-        self.import_button = QtWidgets.QPushButton("Import Checked")
+        self.import_button = QtWidgets.QPushButton("Import Selected")
         self.import_button.setDefault(True)
-        self.import_button_size = QtCore.QSize(125, 25)
+        self.import_button_size = QtCore.QSize(100, 25)
         self.import_button.setFixedSize(self.import_button_size)
         self.top_row.addWidget(self.import_button, QtCore.Qt.AlignRight)
+        self.import_button.clicked.connect(self.import_selected)
 
         # Set the expanding spacer
         self.expanding_spacer = QtWidgets.QSpacerItem(
@@ -150,6 +171,56 @@ class ItemSetup(QtWidgets.QWidget):
         if self.index % 2 == 0:
             col = QtGui.QColor(*BLUE)
         self.shot.setBackground(QtGui.QBrush(col))
+
+    def __call__(self):
+
+        """
+
+        :return:
+        """
+
+    def deselect(self):
+
+        """
+        Remove all selections from the Ui
+        :return:
+        """
+
+        self.shot_tree.clearSelection()
+
+    def select_all(self):
+
+        """
+        Select all of the
+        :return:
+        """
+
+        self.shot_tree.selectAll()
+
+    def import_selected(self):
+
+        """
+        Import the selected assets.
+        :return:
+        """
+
+        selected_indices = self.shot_tree.selectedIndexes()
+
+        len_selected_indices = len(selected_indices) / 2
+
+        asset_indices = list()
+        q_widget_item_widgets = list()
+        for int_sel in range(len_selected_indices):
+
+            model_index_0 = selected_indices[int_sel * 2]
+            model_index_1 = selected_indices[(int_sel * 2)+1]
+
+            asset_index = model_index_0.row()
+            asset_indices.append(asset_index)
+
+            q_widget_item = self.shot_tree.itemFromIndex(model_index_1)
+            q_widget_item_widgets.append(q_widget_item)
+            q_widget_item.version_box.import_asset()
 
     def remove_self(self):
 
@@ -292,7 +363,7 @@ class ShotTree(QtWidgets.QTreeWidget):
         self.column_names = ["Asset", "Version"]
         self.setHeaderLabels(self.column_names)
         self.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
-        # self.setHeaderHidden(1)
+        self.setHeaderHidden(1)
 
         self.size_policy = QtWidgets.QSizePolicy()
         self.size_policy.setHorizontalPolicy(QtWidgets.QSizePolicy.MinimumExpanding)
@@ -300,15 +371,6 @@ class ShotTree(QtWidgets.QTreeWidget):
         self.setSizePolicy(self.size_policy)
 
         self.index = -1
-
-    def import_selected_assets(self):
-
-        """
-
-        :return:
-        """
-
-        # Create an import command here from a versionmaker.version
 
     def version_query(self):
 
@@ -335,11 +397,7 @@ class ShotTree(QtWidgets.QTreeWidget):
         task_folder = self.task_combo_box.itemText(self.task_combo_box.currentIndex())
 
         shot_folder_split = shot_folder.rpartition("__")[2]
-        task_folder_split = task_folder.rpartition("__")[2]
-
-        print "test"
-        print shot_folder_split
-        print task_folder_split
+        task_folder_split = task_folder .rpartition("__")[2]
 
         path = "{0}/{1}/{2}/{3}/{4}/{5}/{6}/{5}__publish/".format(
             show_folder,
@@ -405,12 +463,13 @@ class ShotTree(QtWidgets.QTreeWidget):
 
             # Set the tree widget
             item.setText(0, asset_name)
-            item.setCheckState(0, QtCore.Qt.Unchecked)
+            # item.setCheckState(0, QtCore.Qt.Unchecked)
             self.addTopLevelItem(item)
 
             # set the version box widget to the frame
             version_box = AssetVersionControl(self.parent, self, item)
             version_box.set_widget()
+            setattr(item, "version_box", version_box)
 
             # set the size of the item to the size of the frame
             item.setSizeHint(1, version_box.frame.sizeHint())
@@ -438,6 +497,9 @@ class ShotListWidget(QtWidgets.QListWidgetItem):
         """
 
         super(ShotListWidget, self).__init__(parent)
+
+        # Make object non selectable
+        self.setFlags(QtCore.Qt.NoItemFlags)
 
 
 class ShotTaskAssetItem(QtWidgets.QTreeWidgetItem):
@@ -533,7 +595,7 @@ class AssetVersionControl(QtWidgets.QWidget):
         # Create Asset
         self.import_button = QtWidgets.QPushButton("Import")
         self.import_button.setDefault(True)
-        self.import_button_size = QtCore.QSize(125, 25)
+        self.import_button_size = QtCore.QSize(75, 25)
         self.import_button.setFixedSize(self.import_button_size)
         self.import_button.clicked.connect(self.import_asset)
 

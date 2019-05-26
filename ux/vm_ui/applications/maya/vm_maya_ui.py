@@ -13,7 +13,7 @@ def vm_run():
     :return:
     """
 
-    vm_maya = vm_base.VersionMakerWin(parent=utilities.get_maya_window(), application="houdini")
+    vm_maya = vm_base.VersionMakerWin(parent=utilities.get_maya_window(), application="maya")
 
     if "SHOW" in os.environ:
         vm_maya.job_path = os.environ["SHOW"]
@@ -31,9 +31,9 @@ def import_func(version_dict, asset, version_number):
     """
     Import command for the version maker script
 
-    :param dict version_dict:
-    :param string asset:
-    :param int version_number:
+    :param dict version_dict:  Dictionary denoting location on disk to use.
+    :param string asset:  Name of the asset
+    :param int version_number:  Version to import
     :return:
     """
 
@@ -44,3 +44,13 @@ def import_func(version_dict, asset, version_number):
     anim_import.version_number = version_number
 
     anim_import.import_alembic_cache()
+
+
+def export_func(version_dict, asset):
+
+    """
+
+    :param dict version_dict:  Dictionary denoting location on disk to use.
+    :param string asset:  Name of asset to export
+    :return:
+    """

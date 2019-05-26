@@ -3,10 +3,12 @@ import os
 
 show_path_env_key = "SHOWPATH"
 show_env_key = "SHOW"
+production_env_key = "PRODUCTION"
 partition_env_key = "PARTITION"
 division_env_key = "DVN"
 sequence_env_key = "SEQ"
 shot_env_key = "SHOT"
+task_env_key = "TASK"
 
 
 class Hierarchy(object):
@@ -104,8 +106,8 @@ class Hierarchy(object):
         :return:
         """
 
-        if "PARTITION" not in os.environ:
-            raise KeyError("Envronment PARTITION Variable not set")
+        if partition_env_key not in os.environ:
+            raise KeyError("Envronment PRODUCTION Variable not set")
 
         self.sequence_name = os.environ["PRODUCTION"].replace(os.environ["PRODUCTION"]+"/sequences", "")[1:]
 
@@ -118,10 +120,10 @@ class Hierarchy(object):
         :return:
         """
 
-        if "PARTITION" not in os.environ:
-            raise KeyError("Envronment PARTITION Variable not set")
+        if partition_env_key not in os.environ:
+            raise KeyError("Envronment {} Variable not set".format(partition_env_key))
 
-        self.sequence_name = os.environ["PARTITION"].replace(os.environ["PARTITION"]+"/sequences", "")[1:]
+        self.sequence_name = os.environ[partition_env_key].replace(os.environ[partition_env_key]+"/sequences", "")[1:]
 
         return self.sequence_name
 
@@ -138,6 +140,20 @@ class Hierarchy(object):
         self.shot_name = os.environ["SHOT"].replace(os.environ["SEQ"], "")[1:]
 
         return self.shot_name
+
+    def return_task_name(self):
+
+        """
+        Sets the shot name attribute and returns it.
+        :return:
+        """
+
+        if "SHOT" not in os.environ:
+            raise KeyError("Envronment SHOT Variable not set")
+
+        self.task_name = os.environ["TASK"].replace(os.environ["SHOT"], "")[1:]
+
+        return self.task_name
 
     def return_sequence_name(self):
 
