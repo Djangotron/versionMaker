@@ -1,5 +1,5 @@
 import sys, os
-from PySide2 import QtGui, QtCore, QtWidgets, QtUiTools
+from PySide2 import QtWidgets
 
 
 class CreateAsset(QtWidgets.QInputDialog):

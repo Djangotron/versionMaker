@@ -26,7 +26,10 @@ class VersionMakerWin(QtWidgets.QWidget):
 
         # Application specific data
         self.application = application
+
+        # Setup the functions for importing and exporting
         self.import_func = None
+        self.export_func = None
 
         # copy the hierarchy paths
         self.hierarchy = hierarchy.Hierarchy()
@@ -298,7 +301,7 @@ class VersionMakerWin(QtWidgets.QWidget):
     def import_export_changed(self):
 
         """
-
+        Modify the current visible tools for imports and exports
         :return:
         """
 
@@ -318,7 +321,8 @@ class VersionMakerWin(QtWidgets.QWidget):
             shot_tree = shot_widget.shot_tree.item_frame.children()[-1]
             for asset_version_control_dict in shot_tree.asset_version_controls:
                 asset_name, asset_version_control = asset_version_control_dict.items()[0]
-                print asset_name, asset_version_control
+
+                # if we are importing or exporting
                 if _in:
                     asset_version_control.item_layout.setCurrentWidget(
                         asset_version_control.import_asset_version_control
@@ -328,12 +332,6 @@ class VersionMakerWin(QtWidgets.QWidget):
                     asset_version_control.item_layout.setCurrentWidget(
                         asset_version_control.export_asset_version_control
                     )
-
-                print asset_version_control.import_asset_version_control
-
-        print
-
-        # self.shot_widgets[0].shot_tree.item_frame.children()[-1].asset_version_controls[0].items()[0][1]
 
     def production_combo_box_query(self):
 

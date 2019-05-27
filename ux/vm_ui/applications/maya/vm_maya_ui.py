@@ -37,10 +37,17 @@ def import_func(version_dict, asset, version_number):
     :return:
     """
 
+    print version_dict["path"]
+    print version_dict["folder_versions"]
+    print version_dict["folder_versions"][asset]
+    print version_number
+
     anim_import = animation.AnimationFilmImport()
     anim_import.version = version_dict["folder_versions"][asset]
     anim_import.asset = asset
+    anim_import.verbose = False
     anim_import()
+    anim_import.meta_data.verbose = False
     anim_import.version_number = version_number
 
     anim_import.import_alembic_cache()

@@ -213,7 +213,7 @@ class ItemSetup(QtWidgets.QWidget):
 
             q_widget_item = self.shot_tree.itemFromIndex(model_index_1)
             q_widget_item_widgets.append(q_widget_item)
-            q_widget_item.version_box.import_asset()
+            q_widget_item.version_box.import_asset_version_control.import_asset()
 
     def remove_self(self):
 
@@ -531,8 +531,6 @@ class ShotTaskAssetItem(QtWidgets.QTreeWidgetItem):
         self.version_class.type_folder = self.type_folder
         self.version_class.get_latest_version(search_string=self.asset)
 
-        # print "versions:", self.version_class.folder_versions
-
 
 class AssetVersionControl(QtWidgets.QWidget):
 
@@ -557,20 +555,16 @@ class AssetVersionControl(QtWidgets.QWidget):
         self.item_layout.setSpacing(0)
         # self.item_layout.setFieldGrowthPolicy(QtWidgets.QFormLayout.ExpandingFieldsGrow)
 
-        self.export_asset_version_control = ExportAssetVersionControlWidget()
-        self.import_asset_version_control = ImportAssetVersionControlWidget()
+        self.export_asset_version_control = ExportAssetVersionControlWidget(self, self.parent_tree, self.item)
+        self.import_asset_version_control = ImportAssetVersionControlWidget(self, self.parent_tree, self.item)
 
         self.item_layout.addWidget(self.import_asset_version_control)
         self.item_layout.addWidget(self.export_asset_version_control)
 
-        # self.top_row = QtWidgets.QHBoxLayout()
-        # # self.top_row.addSpacing(0.1)
-        # self.item_layout.addRow(self.top_row)
-
     def set_widget(self):
 
         """
-
+        Sets the widget to the item's frame
         :return:
         """
 
@@ -579,18 +573,21 @@ class AssetVersionControl(QtWidgets.QWidget):
 
 class ExportAssetVersionControlWidget(QtWidgets.QWidget):
 
-    def __init__(self):
+    def __init__(self, parent, parent_tree, item):
 
         """
         Widget for the export controls in the AssetVersionControl class's stacked layout
         """
-        super(ExportAssetVersionControlWidget, self).__init__()
+        super(ExportAssetVersionControlWidget, self).__init__(parent)
 
         self.row = QtWidgets.QHBoxLayout()
         self.setLayout(self.row)
 
+        self.parent_tree = parent_tree
+        self.item = item
+
         # Create Asset
-        self.export_button = QtWidgets.QPushButton("Import")
+        self.export_button = QtWidgets.QPushButton("Export")
         self.export_button.setDefault(True)
         self.import_button_size = QtCore.QSize(75, 25)
         self.export_button.setFixedSize(self.import_button_size)
@@ -609,16 +606,19 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
 
 class ImportAssetVersionControlWidget(QtWidgets.QWidget):
 
-    def __init__(self):
+    def __init__(self, parent, parent_tree, item):
 
         """
         Widget for the import controls in the AssetVersionControl class's stacked layout
         """
 
-        super(ImportAssetVersionControlWidget, self).__init__()
+        super(ImportAssetVersionControlWidget, self).__init__(parent)
 
         self.row = QtWidgets.QHBoxLayout()
         self.setLayout(self.row)
+
+        self.parent_tree = parent_tree
+        self.item = item
 
         # set up the controls
         # shot
