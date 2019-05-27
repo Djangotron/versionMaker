@@ -172,13 +172,6 @@ class ItemSetup(QtWidgets.QWidget):
             col = QtGui.QColor(*BLUE)
         self.shot.setBackground(QtGui.QBrush(col))
 
-    def __call__(self):
-
-        """
-
-        :return:
-        """
-
     def deselect(self):
 
         """
@@ -347,6 +340,7 @@ class ShotTree(QtWidgets.QTreeWidget):
         super(ShotTree, self).__init__(parent)
 
         self.shot_asset_dict = dict()
+        self.asset_version_controls = list()
 
         self.item_frame = None
         self.shot_combo_box = None
@@ -381,6 +375,7 @@ class ShotTree(QtWidgets.QTreeWidget):
 
         self.clear()
         self.shot_asset_dict = dict()
+        self.asset_version_controls = list()
 
         show_folder = self.parent.show_text.text()
         if not os.path.exists(show_folder):
@@ -444,6 +439,7 @@ class ShotTree(QtWidgets.QTreeWidget):
             return
 
         folder_versions = dict()
+
         # add top level items to the
         for type_folder, folder_version_names in folders.items():
 
@@ -469,6 +465,8 @@ class ShotTree(QtWidgets.QTreeWidget):
             # set the version box widget to the frame
             version_box = AssetVersionControl(self.parent, self, item)
             version_box.set_widget()
+            asset_version_controls_dict = {asset_name: version_box}
+            self.asset_version_controls.append(asset_version_controls_dict)
             setattr(item, "version_box", version_box)
 
             # set the size of the item to the size of the frame
@@ -479,7 +477,7 @@ class ShotTree(QtWidgets.QTreeWidget):
 
                 index = item.version_class.folder_versions.index(ver)
                 ver_num = item.version_class.folder_version_numbers[index]
-                version_box.avc_verison_box.addItem(str(ver_num))
+                version_box.import_asset_version_control.avc_verison_box.addItem(str(ver_num))
 
         ancillary_data["folder_versions"] = folder_versions
 
@@ -555,13 +553,72 @@ class AssetVersionControl(QtWidgets.QWidget):
         self.frame.setFrameShape(QtWidgets.QFrame.NoFrame)
 
         # the layout can hold the widgets
-        self.item_layout = QtWidgets.QFormLayout(self.frame)
+        self.item_layout = QtWidgets.QStackedLayout(self.frame)
         self.item_layout.setSpacing(0)
-        self.item_layout.setFieldGrowthPolicy(QtWidgets.QFormLayout.ExpandingFieldsGrow)
+        # self.item_layout.setFieldGrowthPolicy(QtWidgets.QFormLayout.ExpandingFieldsGrow)
 
-        self.top_row = QtWidgets.QHBoxLayout()
-        # self.top_row.addSpacing(0.1)
-        self.item_layout.addRow(self.top_row)
+        self.export_asset_version_control = ExportAssetVersionControlWidget()
+        self.import_asset_version_control = ImportAssetVersionControlWidget()
+
+        self.item_layout.addWidget(self.import_asset_version_control)
+        self.item_layout.addWidget(self.export_asset_version_control)
+
+        # self.top_row = QtWidgets.QHBoxLayout()
+        # # self.top_row.addSpacing(0.1)
+        # self.item_layout.addRow(self.top_row)
+
+    def set_widget(self):
+
+        """
+
+        :return:
+        """
+
+        self.parent_tree.setItemWidget(self.item, 1, self.frame)
+
+
+class ExportAssetVersionControlWidget(QtWidgets.QWidget):
+
+    def __init__(self):
+
+        """
+        Widget for the export controls in the AssetVersionControl class's stacked layout
+        """
+        super(ExportAssetVersionControlWidget, self).__init__()
+
+        self.row = QtWidgets.QHBoxLayout()
+        self.setLayout(self.row)
+
+        # Create Asset
+        self.export_button = QtWidgets.QPushButton("Import")
+        self.export_button.setDefault(True)
+        self.import_button_size = QtCore.QSize(75, 25)
+        self.export_button.setFixedSize(self.import_button_size)
+        self.export_button.clicked.connect(self.export_asset)
+        self.row.addWidget(self.export_button)
+
+    def export_asset(self):
+
+        """
+
+        :return:
+        """
+
+        print "testing!"
+
+
+class ImportAssetVersionControlWidget(QtWidgets.QWidget):
+
+    def __init__(self):
+
+        """
+        Widget for the import controls in the AssetVersionControl class's stacked layout
+        """
+
+        super(ImportAssetVersionControlWidget, self).__init__()
+
+        self.row = QtWidgets.QHBoxLayout()
+        self.setLayout(self.row)
 
         # set up the controls
         # shot
@@ -571,7 +628,7 @@ class AssetVersionControl(QtWidgets.QWidget):
         self.avc_verison_label.setFixedSize(self.avc_verison_label_size)
 
         self.avc_verison_box = QtWidgets.QComboBox()
-        self.avc_verison_box_size = QtCore.QSize(100, 25)
+        self.avc_verison_box_size = QtCore.QSize(50, 25)
         self.avc_verison_box.setFixedSize(self.avc_verison_box_size)
 
         self.avc_basic_spacer = QtWidgets.QSpacerItem(
@@ -608,17 +665,14 @@ class AssetVersionControl(QtWidgets.QWidget):
         )
 
         # Add the widgets
-        self.top_row.addWidget(self.avc_verison_label)
-        self.top_row.addWidget(self.avc_verison_box)
-        self.top_row.addSpacerItem(self.avc_basic_spacer)
-        self.top_row.addWidget(self.avc_status_label)
-        self.top_row.addWidget(self.avc_status_value_label)
-        self.top_row.addSpacerItem(self.avc_basic_spacer)
-        self.top_row.addWidget(self.import_button, QtCore.Qt.AlignRight)
-        self.top_row.addSpacerItem(self.avc_status_spacer)
-
-        # self.top_row.addLayout(self.avc_status_value_layout)
-        # self.avc_status_value_layout.addWidget(self.avc_status_value_label)
+        self.row.addWidget(self.avc_verison_label)
+        self.row.addWidget(self.avc_verison_box)
+        self.row.addSpacerItem(self.avc_basic_spacer)
+        self.row.addWidget(self.avc_status_label)
+        self.row.addWidget(self.avc_status_value_label)
+        self.row.addSpacerItem(self.avc_basic_spacer)
+        self.row.addWidget(self.import_button, QtCore.Qt.AlignRight)
+        self.row.addSpacerItem(self.avc_status_spacer)
 
         self.avc_verison_label.setBuddy(self.avc_verison_box)
 
@@ -635,16 +689,6 @@ class AssetVersionControl(QtWidgets.QWidget):
             asset=self.item.asset,
             version_number=version_number
         )
-
-    def set_widget(self):
-
-        """
-
-        :return:
-        """
-
-        self.parent_tree.setItemWidget(self.item, 1, self.frame)
-
 
 class AncillaryDataWidget(QtWidgets.QWidget):
 

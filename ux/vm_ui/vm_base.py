@@ -77,13 +77,6 @@ class VersionMakerWin(QtWidgets.QWidget):
         # Setup the current task
         self.defaults_layout = QtWidgets.QHBoxLayout()
 
-        # Set a default task
-        self.task_default_label = QtWidgets.QLabel("Current Task: ")
-        self.task_default_combo_box = QtWidgets.QComboBox()
-        self.defaults_layout.addWidget(self.task_default_label, QtCore.Qt.AlignLeft)
-        self.defaults_layout.addWidget(self.task_default_combo_box, QtCore.Qt.AlignLeft)
-        self.main_layout.addLayout(self.defaults_layout)
-
         for task in self.hierarchy.tasks:
             self.task_default_combo_box.addItem(task)
 
@@ -198,6 +191,21 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.partition_combo_box.currentIndexChanged.connect(self.division_combo_box_query)
         self.division_combo_box.currentIndexChanged.connect(self.sequence_combo_box_query)
 
+        # Set a default task
+        self.task_default_label = QtWidgets.QLabel("Current Task")
+        self.task_default_combo_box = QtWidgets.QComboBox()
+        self.sequence_grid.addWidget(self.task_default_label, 2, 0, 1, 1, QtCore.Qt.AlignTop)
+        self.sequence_grid.addWidget(self.task_default_combo_box, 3, 0, 1, 1, QtCore.Qt.AlignTop)
+
+        # Set a default task
+        self.in_out_label = QtWidgets.QLabel("Import / Export")
+        self.in_out_combo_box = QtWidgets.QComboBox()
+        self.in_out_combo_box.addItem("Import")
+        self.in_out_combo_box.addItem("Export")
+        self.sequence_grid.addWidget(self.in_out_label, 2, 3, 1, 1, QtCore.Qt.AlignTop)
+        self.sequence_grid.addWidget(self.in_out_combo_box, 3, 3, 1, 1, QtCore.Qt.AlignTop)
+        self.in_out_combo_box.currentIndexChanged.connect(self.import_export_changed)
+
         self.main_layout.addLayout(self.sequence_grid)
 
     def append_shot(self):
@@ -265,12 +273,14 @@ class VersionMakerWin(QtWidgets.QWidget):
     def file_dialog_call(self):
 
         """
-
+        wrapper for the file dialog command
         :return:
         """
 
         self.file_dialog.create()
-        self.show_text.setText(self.file_dialog.folder_name)
+
+        if os.path.exists(self.file_dialog.folder_name):
+            self.show_text.setText(self.file_dialog.folder_name)
 
         # self.production_combo_box_query()
 
@@ -284,6 +294,46 @@ class VersionMakerWin(QtWidgets.QWidget):
         """
 
         label_widget.setText(label_name)
+
+    def import_export_changed(self):
+
+        """
+
+        :return:
+        """
+
+        len_shot_widgets = len(self.shot_widgets)
+        if len_shot_widgets == 0:
+            return
+
+        # Check if we are importing or exporting
+        _in = True
+        if self.in_out_combo_box.currentIndex() == 1:
+            _in = False
+
+        # Get the shot widgets
+        for shot_widget in self.shot_widgets:
+
+            # Get the shot tree of the widget
+            shot_tree = shot_widget.shot_tree.item_frame.children()[-1]
+            for asset_version_control_dict in shot_tree.asset_version_controls:
+                asset_name, asset_version_control = asset_version_control_dict.items()[0]
+                print asset_name, asset_version_control
+                if _in:
+                    asset_version_control.item_layout.setCurrentWidget(
+                        asset_version_control.import_asset_version_control
+                    )
+
+                else:
+                    asset_version_control.item_layout.setCurrentWidget(
+                        asset_version_control.export_asset_version_control
+                    )
+
+                print asset_version_control.import_asset_version_control
+
+        print
+
+        # self.shot_widgets[0].shot_tree.item_frame.children()[-1].asset_version_controls[0].items()[0][1]
 
     def production_combo_box_query(self):
 
