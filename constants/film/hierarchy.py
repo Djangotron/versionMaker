@@ -168,3 +168,243 @@ class Hierarchy(object):
         self.sequence_name = os.environ["SEQ"].replace(os.environ["PARTITION"]+"/sequences", "")[1:]
 
         return self.sequence_name
+
+
+
+
+def get_show(path=""):
+
+    """
+
+    :param string path:  File path of the scene.
+    :return: dict - {"show_folder": show_folder, "show_folder_path": show_folder_path}
+    """
+
+    show_preferences = SolFolderStructure().query_project_preferences()
+    show_folder = show_preferences["show_folder"]
+    show_folder_path = show_preferences["show_folder_path"]
+    show_folder_location = show_preferences["show_folder_location"]
+
+    # If we find the path in the file directory we return a dict with the paths
+    if path.find(show_folder) != -1:
+
+        return_dict = {
+            "show_folder": show_folder,
+            "show_folder_path": show_folder_path,
+            "show_folder_location": show_folder_location
+        }
+
+        return return_dict
+
+
+def get_division(path):
+
+    """
+    Returns if you are in assets or shots.
+    :param string path:  File path of the scene.
+    :return:
+    """
+
+    folder_structure = SolFolderStructure()
+    show_preferences = folder_structure.query_project_preferences()
+
+    show_folder = show_preferences["show_folder"]
+    show_folder_path = show_preferences["show_folder_path"]
+    show_folder_location = show_preferences["show_folder_location"]
+
+    # if its not found
+    if path.find(show_folder_path) == -1:
+        return
+
+    partition_dict = get_partition(path=path)
+    partition_folder = partition_dict["partition_folder"]
+    partition_path = partition_dict["partition_path"]
+
+    temp_path = path.replace("{0}/".format(partition_path), "")
+    division_folder = temp_path.split("/")[0]
+
+    # {show_path} / {show} / {production} / {division_type} / {division}
+    division_path = folder_structure.show_divisions_path.format(
+        show_path=show_folder_location,
+        show=show_folder,
+        production=folder_structure.production_folder,
+        partition=partition_folder,
+        division=division_folder
+    )
+
+    return_dict = {"division_folder": division_folder, "division_path": division_path}
+
+    return return_dict
+
+
+def get_partition(path):
+
+    """
+    Returns if you are in assets or shots.
+    :param string path:  File path of the scene.
+    :return:
+    """
+
+    folder_structure = SolFolderStructure()
+    show_preferences = folder_structure.query_project_preferences()
+
+    show_folder = show_preferences["show_folder"]
+    show_folder_path = show_preferences["show_folder_path"]
+    show_folder_location = show_preferences["show_folder_location"]
+
+    if path.find(show_folder_path) != -1:
+
+        production_path = "{0}/{1}/".format(show_folder_path, folder_structure.production_folder)
+        temp_path = path.replace(production_path, "")
+
+        partition = temp_path.split("/")[0]
+        # {show_path} / {show} / {production} / {partition}
+        partition_path = folder_structure.show_partition_path.format(
+            show_path=show_folder_location,
+            show=show_folder,
+            production=folder_structure.production_folder,
+            partition=partition
+        )
+
+        return_dict = {"partition_folder": partition, "partition_path": partition_path}
+
+        return return_dict
+
+
+def get_sequence(path):
+
+    """
+    Get the 'SHOW' environment variable.
+    :return:
+    """
+
+    folder_structure = SolFolderStructure()
+    show_preferences = folder_structure.query_project_preferences()
+
+    show_folder = show_preferences["show_folder"]
+    show_folder_path = show_preferences["show_folder_path"]
+    show_folder_location = show_preferences["show_folder_location"]
+
+    # if its not found
+    if path.find(show_folder_path) == -1:
+        return
+
+    partition_dict = get_partition(path=path)
+    partition_folder = partition_dict["partition_folder"]
+    partition_path = partition_dict["partition_path"]
+
+    division_dict = get_division(path=path)
+    division_folder = division_dict["division_folder"]
+    division_path = division_dict["division_path"]
+
+    temp_path = path.replace("{0}/".format(division_path), "")
+    sequence = temp_path.split("/")[0]
+
+    # {show_path} / {show} / {production} / {division_type} / {division} / {sequence}
+    sequence_path = folder_structure.show_sequences_path.format(
+        show_path=show_folder_location,
+        show=show_folder,
+        production=folder_structure.production_folder,
+        partition=partition_folder,
+        division=division_folder,
+        sequence=sequence
+    )
+
+    return_dict = {"sequence_folder": sequence, "sequence_path": sequence_path}
+
+    return return_dict
+
+
+def get_shot(path):
+
+    """
+    Get the 'SHOW' environment variable.
+    :return:
+    """
+
+    folder_structure = SolFolderStructure()
+    show_preferences = folder_structure.query_project_preferences()
+
+    show_folder = show_preferences["show_folder"]
+    show_folder_path = show_preferences["show_folder_path"]
+    show_folder_location = show_preferences["show_folder_location"]
+
+    # if its not found
+    if path.find(show_folder_path) == -1:
+        return
+
+    partition_dict = get_partition(path=path)
+    partition_folder = partition_dict["partition_folder"]
+
+    division_dict = get_division(path=path)
+    division_folder = division_dict["division_folder"]
+
+    sequence_dict = get_sequence(path=path)
+    sequence_folder = sequence_dict["sequence_folder"]
+    sequence_path = sequence_dict["sequence_path"]
+
+    temp_path = path.replace("{0}/".format(sequence_path), "")
+    shot_folder = temp_path.split("/")[0]
+
+    # {show_path} / {show} / {production} / {division_type} / {division} / {sequence}
+    shot_path = folder_structure.show_shots_path_env.format(
+        show_path=show_folder_location,
+        show=show_folder,
+        production=folder_structure.production_folder,
+        partition=partition_folder,
+        division=division_folder,
+        sequence=sequence_folder,
+        shot=shot_folder
+    )
+
+    return_dict = {"shot_folder": shot_folder, "shot_path": shot_path}
+
+    return return_dict
+
+
+def get_task(path):
+
+    """
+    Get the 'SHOW' environment variable.
+    :return:
+    """
+
+    folder_structure = SolFolderStructure()
+    show_preferences = folder_structure.query_project_preferences()
+    show_folder_path = show_preferences["show_folder_path"]
+
+    # if its not found
+    if path.find(show_folder_path) == -1:
+        return
+
+    shot_dict = get_shot(path)
+    shot_path = shot_dict["shot_path"]
+
+    temp_path = path.replace("{0}/".format(shot_path), "")
+    task_folder = temp_path.split("/")[0]
+
+    # {shot_path} / {task_folder}
+    task_path = folder_structure.task_path.format(
+        shot_path=shot_path,
+        task=task_folder
+    )
+
+    return_dict = {"task_folder": task_folder, "task_path": task_path}
+
+    return return_dict
+
+
+def set_show(path):
+
+    """
+
+    :param string path:
+    :return:
+    """
+
+    show_folder = SolFolderStructure().query_project_preferences()["show_folder_path"]
+
+    if path.find(show_folder) != -1:
+        return show_folder
+    else:
+        return ""

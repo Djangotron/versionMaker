@@ -143,6 +143,8 @@ class AnimationFilmImport(ImportVersion):
         self.meta_data.print_version()
 
         if "alembic" in self.meta_data.file_types:
+
+            print "testing path:", self.meta_data.ancillary_data["alembic_paths"][0]
             self.alembic_class.file_path = self.meta_data.ancillary_data["alembic_paths"][0]
             # If we will create a node from the name of the asset
             if self.import_alembic_under_asset_transform:
@@ -160,10 +162,25 @@ class AnimationFilmImport(ImportVersion):
         :return:
         """
 
+        parent_name = "cache"
         if self.import_alembic_under_asset_transform:
-            if not cmds.objExists(self.asset):
-                self.asset_parent_transform(name=self.asset)
-                self.alembic_class.import_parent = self.asset
+            if not cmds.objExists(parent_name):
+                self.asset_parent_transform(name=parent_name)
+
+            # get the long name
+            parent_names = cmds.ls(self.asset, long=True)
+            len_parent_names = len(parent_names)
+
+            # Multiple object exists
+            if len_parent_names > 1:
+                raise NameError(
+                    "Parent Node for Alembic Cache: '{0}'\tFound Multiple nodes named this.".format(parent_name)
+                )
+
+            parent_name = parent_names[0]
+
+            self.alembic_class.import_namespace = self.asset
+            self.alembic_class.import_parent = parent_name
 
         self.alembic_class.import_cache()
 
@@ -188,3 +205,19 @@ class AnimationFilmImport(ImportVersion):
                 cmds.setAttr(
                     "{0}.{1}{2}".format(self.asset, xform, axis), lock=True, keyable=False, channelBox=False
                 )
+
+        # Add trackable attributes to the nodes
+        parent_version_attributes_values = [self.asset, self.task, self.version_number]
+        for int_dict, attr in enumerate(self.parent_version_attributes):
+
+            # Get the name from the dict
+            asset_attr = "{0}.{1}".format(self.asset, attr)
+
+            # Add the attribute
+            if not cmds.attributeQuery(attr, node=self.asset, exists=True):
+                cmds.addAttr(self.asset, ln=attr, at="enum", enumName="{}:".format(attr))
+                cmds.setAttr(asset_attr, lock=True, keyable=False, channelBox=True)
+
+            cmds.setAttr(asset_attr, lock=False)
+            cmds.addAttr(asset_attr, edit=True, enumName="{}:".format(parent_version_attributes_values[int_dict]))
+            cmds.setAttr(asset_attr, lock=True)

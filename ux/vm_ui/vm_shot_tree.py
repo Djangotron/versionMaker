@@ -87,36 +87,42 @@ class ItemSetup(QtWidgets.QWidget):
         # Deselect
         self.deselect_button = QtWidgets.QPushButton("Deselect")
         self.deselect_button.setDefault(True)
-        self.deselect_button_size = QtCore.QSize(75, 25)
-        self.deselect_button.setFixedSize(self.deselect_button_size)
+        self.deselect_button.setFixedSize(QtCore.QSize(75, 25))
         self.top_row.addWidget(self.deselect_button, QtCore.Qt.AlignRight)
         self.top_row.addSpacerItem(self.spacer_1)
-        self.deselect_button.clicked.connect(self.deselect)
 
         # Deselect
         self.select_all_button = QtWidgets.QPushButton("Select All")
         self.select_all_button.setDefault(True)
-        self.select_all_button_size = QtCore.QSize(75, 25)
-        self.select_all_button.setFixedSize(self.select_all_button_size)
+        self.select_all_button.setFixedSize(QtCore.QSize(75, 25))
         self.top_row.addWidget(self.select_all_button, QtCore.Qt.AlignRight)
         self.top_row.addSpacerItem(self.spacer_1)
-        self.select_all_button.clicked.connect(self.select_all)
 
         # Create Asset
         self.create_asset_button = QtWidgets.QPushButton("Create Asset")
         self.create_asset_button.setDefault(True)
-        self.create_asset_button_size = QtCore.QSize(75, 25)
-        self.create_asset_button.setFixedSize(self.create_asset_button_size)
+        self.create_asset_button.setFixedSize(QtCore.QSize(75, 25))
         self.top_row.addWidget(self.create_asset_button, QtCore.Qt.AlignRight)
         self.top_row.addSpacerItem(self.spacer_1)
 
-        # Create Asset
+        # Stacked widget for
+        self.io_button_stack = QtWidgets.QStackedWidget()
+        self.top_row.addWidget(self.io_button_stack)
+
+        # Import Selected
         self.import_button = QtWidgets.QPushButton("Import Selected")
         self.import_button.setDefault(True)
         self.import_button_size = QtCore.QSize(100, 25)
         self.import_button.setFixedSize(self.import_button_size)
-        self.top_row.addWidget(self.import_button, QtCore.Qt.AlignRight)
+        self.io_button_stack.addWidget(self.import_button)
         self.import_button.clicked.connect(self.import_selected)
+
+        # Export Selected
+        self.export_button = QtWidgets.QPushButton("Export Selected")
+        self.export_button.setDefault(True)
+        self.export_button.setFixedSize(QtCore.QSize(100, 25))
+        self.io_button_stack.addWidget(self.export_button)
+        self.export_button.clicked.connect(self.export_selected)
 
         # Set the expanding spacer
         self.expanding_spacer = QtWidgets.QSpacerItem(
@@ -157,6 +163,8 @@ class ItemSetup(QtWidgets.QWidget):
         self.parent_list_widget.setItemWidget(self.shot, self.item_frame)
 
         self.task_combo_box.currentIndexChanged.connect(self.shot_tree.version_query)
+        self.deselect_button.clicked.connect(self.shot_tree.clearSelection)
+        self.select_all_button.clicked.connect(self.shot_tree.selectAll)
 
         # Set the size from the child widgets
         self.shot.setSizeHint(self.item_frame.sizeHint())
@@ -171,24 +179,6 @@ class ItemSetup(QtWidgets.QWidget):
         if self.index % 2 == 0:
             col = QtGui.QColor(*BLUE)
         self.shot.setBackground(QtGui.QBrush(col))
-
-    def deselect(self):
-
-        """
-        Remove all selections from the Ui
-        :return:
-        """
-
-        self.shot_tree.clearSelection()
-
-    def select_all(self):
-
-        """
-        Select all of the
-        :return:
-        """
-
-        self.shot_tree.selectAll()
 
     def import_selected(self):
 
@@ -215,6 +205,31 @@ class ItemSetup(QtWidgets.QWidget):
             q_widget_item_widgets.append(q_widget_item)
             q_widget_item.version_box.import_asset_version_control.import_asset()
 
+    def export_selected(self):
+
+        """
+        Exports the selected assets
+        :return:
+        """
+
+        selected_indices = self.shot_tree.selectedIndexes()
+
+        len_selected_indices = len(selected_indices) / 2
+
+        asset_indices = list()
+        q_widget_item_widgets = list()
+        for int_sel in range(len_selected_indices):
+
+            model_index_0 = selected_indices[int_sel * 2]
+            model_index_1 = selected_indices[(int_sel * 2)+1]
+
+            asset_index = model_index_0.row()
+            asset_indices.append(asset_index)
+
+            q_widget_item = self.shot_tree.itemFromIndex(model_index_1)
+            q_widget_item_widgets.append(q_widget_item)
+            q_widget_item.version_box.export_asset_version_control.export_asset()
+
     def remove_self(self):
 
         """
@@ -228,7 +243,6 @@ class ItemSetup(QtWidgets.QWidget):
 
         # Remove self from the parents list of available shot widgets
         self.parent.shot_widgets.pop(self.parent.shot_widgets.index(self))
-
         self.parent.data_list.takeItem(self.parent.data_list.row(self.shot))
 
         # reset the colours
@@ -325,6 +339,15 @@ class ItemSetup(QtWidgets.QWidget):
                 self.task_combo_box.addItem(fldr)
 
         self.task_combo_box.setCurrentIndex(index)
+
+
+class ToolBarExport(QtWidgets.QWidget):
+
+    def __init__(self):
+
+        """
+        Export Toolbar
+        """
 
 
 class ShotTree(QtWidgets.QTreeWidget):
@@ -468,6 +491,7 @@ class ShotTree(QtWidgets.QTreeWidget):
             asset_version_controls_dict = {asset_name: version_box}
             self.asset_version_controls.append(asset_version_controls_dict)
             setattr(item, "version_box", version_box)
+            version_box.export_asset_version_control.query_scene_func()
 
             # set the size of the item to the size of the frame
             item.setSizeHint(1, version_box.frame.sizeHint())
@@ -589,10 +613,49 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         # Create Asset
         self.export_button = QtWidgets.QPushButton("Export")
         self.export_button.setDefault(True)
-        self.import_button_size = QtCore.QSize(75, 25)
-        self.export_button.setFixedSize(self.import_button_size)
+        self.export_button_size = QtCore.QSize(75, 25)
+        self.export_button.setFixedSize(self.export_button_size)
         self.export_button.clicked.connect(self.export_asset)
-        self.row.addWidget(self.export_button)
+        self.row.addWidget(self.export_button, QtCore.Qt.AlignLeft)
+
+        # Label
+        self.asset_label = QtWidgets.QLabel("Scene Nodes:")
+        self.asset_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.asset_label.setFixedSize(QtCore.QSize(75, 15))
+        self.row.addWidget(self.asset_label, QtCore.Qt.AlignLeft)
+
+        # Label
+        self.cache_object_names = QtWidgets.QLabel("")
+        self.cache_object_names.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.cache_object_names.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.cache_object_names.setFixedSize(QtCore.QSize(400, 15))
+        self.row.addWidget(self.cache_object_names, QtCore.Qt.AlignLeft)
+        self.row.addStretch()
+
+    def query_scene_func(self):
+
+        """
+
+        :return:
+        """
+
+        asset = self.item.asset
+        asset_geo_names = list()
+        try:
+            asset_geo_names = self.parent_tree.parent.get_cache_objects_func(asset_name=asset)
+        except NameError:
+            print "Uable to set asset for export: {0};".format(asset)
+
+        len_asset_geo_names = len(asset_geo_names)
+        object_names = ""
+        for int_geo, geo in enumerate(asset_geo_names):
+            object_names += geo
+            if int_geo+1 != len_asset_geo_names:
+                object_names += ", "
+
+        self.cache_object_names.setText(object_names)
+
+        return asset_geo_names
 
     def export_asset(self):
 
@@ -601,7 +664,7 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         :return:
         """
 
-        print "testing!"
+        print "testing! export_asset"
 
 
 class ImportAssetVersionControlWidget(QtWidgets.QWidget):
@@ -623,13 +686,11 @@ class ImportAssetVersionControlWidget(QtWidgets.QWidget):
         # set up the controls
         # shot
         self.avc_verison_label = QtWidgets.QLabel("Version:")
-        self.avc_verison_label_size = QtCore.QSize(75, 15)
         self.avc_verison_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        self.avc_verison_label.setFixedSize(self.avc_verison_label_size)
+        self.avc_verison_label.setFixedSize(QtCore.QSize(75, 15))
 
         self.avc_verison_box = QtWidgets.QComboBox()
-        self.avc_verison_box_size = QtCore.QSize(50, 25)
-        self.avc_verison_box.setFixedSize(self.avc_verison_box_size)
+        self.avc_verison_box.setFixedSize(QtCore.QSize(50, 25))
 
         self.avc_basic_spacer = QtWidgets.QSpacerItem(
             30,
@@ -639,7 +700,7 @@ class ImportAssetVersionControlWidget(QtWidgets.QWidget):
         )
 
         self.avc_status_label = QtWidgets.QLabel("Status:")
-        self.avc_status_label.setFixedSize(self.avc_verison_box_size)
+        self.avc_status_label.setFixedSize(QtCore.QSize(50, 25))
 
         # Layout for the
         self.avc_status_value_frame = QtWidgets.QFrame()
@@ -647,13 +708,12 @@ class ImportAssetVersionControlWidget(QtWidgets.QWidget):
         self.avc_status_value_layout.setSpacing(0)
 
         self.avc_status_value_label = QtWidgets.QLabel("Published")
-        self.avc_status_value_label.setFixedSize(self.avc_verison_box_size)
+        self.avc_status_value_label.setFixedSize(QtCore.QSize(50, 25))
 
         # Create Asset
         self.import_button = QtWidgets.QPushButton("Import")
         self.import_button.setDefault(True)
-        self.import_button_size = QtCore.QSize(75, 25)
-        self.import_button.setFixedSize(self.import_button_size)
+        self.import_button.setFixedSize(QtCore.QSize(75, 25))
         self.import_button.clicked.connect(self.import_asset)
 
         # STRETCH SPACER
@@ -690,6 +750,7 @@ class ImportAssetVersionControlWidget(QtWidgets.QWidget):
             version_number=version_number
         )
 
+
 class AncillaryDataWidget(QtWidgets.QWidget):
 
     def __init__(self):
@@ -699,4 +760,36 @@ class AncillaryDataWidget(QtWidgets.QWidget):
         """
 
         super(AncillaryDataWidget, self).__init__()
+
+
+class ShotVariablesDialog(QtWidgets.QDialog):
+
+    def __init__(self, shot_item):
+
+        """
+        Sets global data for exporting shot data.
+        :param ItemSetup (QWidget) shot_item:  The QWidget class that has access to the
+        """
+
+        self.start_frame = 1001.0
+        self.end_frame = 1101.0
+        self.pre_roll_start_frame = 990.0
+
+        self.shot_item = shot_item
+
+    def set_shot_data(self):
+
+        """
+        Sets the shot data to each of the ExportAssetVersionControl
+        :return:
+        """
+
+        self.shot_item.shot_tree
+
+    def query_shot_data(self):
+
+        """
+        Returns the generic shot variables as a starting point
+        :return:
+        """
 

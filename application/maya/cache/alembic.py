@@ -293,10 +293,19 @@ class AlembicCache(object):
         self.write_visibility = True
         self.root_geometries = str()
 
+        # alembic import nodes
+        self.alembic_node = str()
+        self.alembic_heirarchy_top_nodes = list()
+
         # import controls
         self.import_command = ""
+        self.fit_time_range = False
         self.import_mode = "import"
         self.import_parent = ""
+        self.lock_exposed_transform_channels = True
+        self.import_namespace = ""
+        self.use_import_namespace = True
+        self.add_meta_data_attributes = True
 
         self.alembic_verbose = False
 
@@ -335,6 +344,58 @@ class AlembicCache(object):
                     attr_str = " -userAttr " + attr
                     self.user_attributes_string += attr_str
 
+    def clean_up_alembic_hierarchy(self, top_transform=""):
+
+        """
+        Return the children of a top_transform
+        :param string top_transform:
+        :return:
+        """
+
+        descendants = cmds.listRelatives(top_transform, allDescendents=True, fullPath=True)
+        if descendants is None:
+            return list()
+
+        descendants.insert(0, top_transform)
+
+        type_list = list()
+        non_type_list = list()
+        for descendant in descendants:
+            # check the object type.
+            shape_type = cmds.objectType(descendant)
+
+            if shape_type == "transform":
+                type_list.append(descendant)
+            else:
+                non_type_list.append(descendant)
+
+        # Lock the transforms
+        if self.lock_exposed_transform_channels:
+            for transform in type_list:
+                for xform in ("t", "r", "s"):
+                    for axis in ("x", "y", "z"):
+
+                        transform_attr = "{0}.{1}{2}".format(transform, xform, axis)
+                        # Pass if there is a transform connection
+                        if cmds.listConnections(transform_attr, source=True, destination=False) is not None:
+                            continue
+
+                        # lock if there is no connection
+                        if not cmds.getAttr(transform_attr, lock=True):
+                            cmds.setAttr(transform_attr, lock=True)
+
+        if self.add_meta_data_attributes:
+            for descendant in descendants:
+                cmds.addAttr(descendant, ln="originalName", dt="string")
+                cmds.setAttr("{0}.originalName".format(descendant), descendant, lock=True, type="string")
+
+        if self.use_import_namespace:
+            cmds.namespaceinfo()
+
+        self.alembic_heirarchy_top_nodes = cmds.listRelatives(top_transform, children=True)
+
+        return self.alembic_heirarchy_top_nodes
+
     def export(self):
         """
         Run the export command.
@@ -346,6 +407,15 @@ class AlembicCache(object):
         finally:
             OpenMaya.MGlobal.displayInfo(self.export_command)
 
+    def get_cache_sets(self):
+
+        """
+        Returns and objects sets that have the name 'cache_set'
+        :return:
+        """
+
+        return [i for i in cmds.ls(type="objectSet") if i.find(self.cache_set) != -1]
+
     def import_cache(self):
 
         """
@@ -354,9 +424,15 @@ class AlembicCache(object):
         """
 
         try:
-            mel.eval(self.import_command)
+            self.alembic_node = mel.eval(self.import_command)
+        except RuntimeError:
+            raise RuntimeError("Unable to import alembic cache")
         finally:
             OpenMaya.MGlobal.displayInfo(self.import_command)
+
+        self.clean_up_alembic_hierarchy(top_transform=self.import_parent)
+
+        return self.alembic_node
 
     def set_export_command(self):
 
@@ -403,10 +479,15 @@ class AlembicCache(object):
         if self.import_parent != "":
             reparent = ' -reparent \"{0}\"'.format(self.import_parent)
 
+        fit_time_range = ""
+        if self.fit_time_range:
+            fit_time_range = " -fitTimeRange"
+
         self.import_command = \
-            'AbcImport -mode {import_mode}{reparent} \"{file_path}\";'.format(
+            'AbcImport -mode {import_mode}{reparent}{fitTimeRange} \"{file_path}\";'.format(
                 import_mode=self.import_mode,
                 reparent=reparent,
+                fitTimeRange=fit_time_range,
                 file_path=self.file_path
             )
 
@@ -425,12 +506,3 @@ class AlembicCache(object):
 
         for obj in self.cache_objects:
             self.root_geometries += " -root {0}".format(obj)
-
-    def get_cache_sets(self):
-
-        """
-        Returns and objects sets that have the name 'cache_set'
-        :return:
-        """
-
-        return [i for i in cmds.ls(type="objectSet") if i.find(self.cache_set) != -1]

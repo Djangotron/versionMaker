@@ -1,9 +1,16 @@
 import os
-from .. import import_version
+from .. import folder
+from ...metadata import meta_data_file
 from ...constants.film import hierarchy
 
 
-class ImportAnimationVersion(import_version.ImportVersion, hierarchy.Hierarchy):
+class ImportAnimationVersion(hierarchy.Hierarchy):
+
+    parent_version_attributes = [
+        "assetName",
+        "taskType",
+        "version"
+    ]
 
     def __init__(self):
 
@@ -23,6 +30,9 @@ class ImportAnimationVersion(import_version.ImportVersion, hierarchy.Hierarchy):
         #
         self.pre_roll_start_frame = None
         self.post_roll_end_frame = None
+
+        self.version = folder.Version()
+        self.meta_data = meta_data_file.ReadFile()
 
     def set_shot(self, partition, division, sequence, shot, task):
 
@@ -161,6 +171,3 @@ class ImportAnimationVersion(import_version.ImportVersion, hierarchy.Hierarchy):
             shot_folders.append(_folder)
 
         return shot_folders
-
-
-# create class to transfer this version to DCC

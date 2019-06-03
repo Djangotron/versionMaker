@@ -31,6 +31,8 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.import_func = None
         self.export_func = None
 
+        self.get_cache_objects_func = None
+
         # copy the hierarchy paths
         self.hierarchy = hierarchy.Hierarchy()
         self.file_dialog = FileDialog()
@@ -316,6 +318,11 @@ class VersionMakerWin(QtWidgets.QWidget):
 
         # Get the shot widgets
         for shot_widget in self.shot_widgets:
+
+            if _in:
+                shot_widget.io_button_stack.setCurrentWidget(shot_widget.import_button)
+            else:
+                shot_widget.io_button_stack.setCurrentWidget(shot_widget.export_button)
 
             # Get the shot tree of the widget
             shot_tree = shot_widget.shot_tree.item_frame.children()[-1]

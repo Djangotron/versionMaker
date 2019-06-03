@@ -17,9 +17,12 @@ def vm_run():
     vm_hou.setStyleSheet(hou.qt.styleSheet())
     vm_hou.setProperty("houdiniStyle", True)
     vm_hou.file_dialog.setStyleSheet(hou.qt.styleSheet())
+
     vm_hou()
     vm_hou.show()
+
     vm_hou.import_func = partial(import_func)
+    vm_hou.export_func = partial(import_func)
 
     return vm_hou
 
@@ -51,3 +54,15 @@ def import_func(version_dict, asset, version_number):
         anim_import.version_number = version_number
 
         anim_import.update_alembic_path(node, "input_animation", use_path_expression=True)
+
+
+def export_func(version_dict, asset):
+
+    """
+
+    :param dict version_dict:  Dictionary denoting location on disk to use.
+    :param string asset:  Name of asset to export
+    :return:
+    """
+
+    version_dict["folder_versions"][asset].verbose = False
