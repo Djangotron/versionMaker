@@ -24,7 +24,29 @@ def vm_run():
     vm_hou.import_func = partial(import_func)
     vm_hou.export_func = partial(import_func)
 
+    vm_hou.get_cache_objects_func = partial(get_cacheable_objects)
+    vm_hou.print_func = partial(print_func)
+    vm_hou.get_selection_func = partial(get_selection)
+
     return vm_hou
+
+
+def get_cacheable_objects(asset_name=""):
+
+    """
+
+    :param string asset_name:
+    :return:
+    """
+
+
+def get_selection():
+    """
+    Return the selection as a list of strings
+    :return:
+    """
+
+    return hou.selectedNodes()
 
 
 def import_func(version_dict, asset, version_number):
@@ -66,3 +88,12 @@ def export_func(version_dict, asset):
     """
 
     version_dict["folder_versions"][asset].verbose = False
+
+
+def print_func(string=""):
+
+    """
+
+    :param string string:
+    :return:
+    """

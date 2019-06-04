@@ -625,17 +625,73 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         self.row.addWidget(self.asset_label, QtCore.Qt.AlignLeft)
 
         # Label
-        self.cache_object_names = QtWidgets.QLabel("")
-        self.cache_object_names.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        self.cache_object_names.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        self.cache_object_names.setFixedSize(QtCore.QSize(400, 15))
+        self.cache_object_names = QtWidgets.QLineEdit()
+        self.cache_object_names.setToolTip('Separate objects by a ", " (comma and space)')
+        # self.cache_object_names.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        # self.cache_object_names.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.cache_object_names.setFixedSize(QtCore.QSize(400, 25))
         self.row.addWidget(self.cache_object_names, QtCore.Qt.AlignLeft)
+
+        self.replace_button = QtWidgets.QPushButton("Get")
+        self.replace_button.setFixedSize(QtCore.QSize(35, 25))
+        self.replace_button.setToolTip("Get a new selection")
+        self.replace_button.clicked.connect(self.replace_text)
+        self.row.addWidget(self.replace_button, QtCore.Qt.AlignLeft)
+
+        self.append_button = QtWidgets.QPushButton("Add")
+        self.append_button.setFixedSize(QtCore.QSize(35, 25))
+        self.append_button.setToolTip("Append more objects to a selection")
+        self.append_button.clicked.connect(self.append_text)
+        self.row.addWidget(self.append_button, QtCore.Qt.AlignLeft)
+
+        options_image = self.parent_tree.parent.icon_path + "version_maker__options__v01.png"
+
+        self.options_button = QtWidgets.QPushButton(QtGui.QIcon(QtGui.QPixmap(options_image)), "", None)
+        self.row.addWidget(self.options_button, QtCore.Qt.AlignLeft)
+
         self.row.addStretch()
+
+    def append_text(self):
+
+        """
+
+        :return:
+        """
+
+        object_names = self.cache_object_names.text()
+        len_object_names = len(object_names)
+        selection = self.parent_tree.parent.get_selection_func()
+
+        len_asset_geo_names = len(selection)+len_object_names
+        for int_geo, geo in enumerate(selection):
+            if int_geo+len_object_names != len_asset_geo_names:
+                object_names += ", "
+            object_names += geo
+
+        self.cache_object_names.setText(object_names)
+
+    def replace_text(self):
+
+        """
+
+        :return:
+        """
+
+        selection = self.parent_tree.parent.get_selection_func()
+
+        len_asset_geo_names = len(selection)
+        object_names = ""
+        for int_geo, geo in enumerate(selection):
+            object_names += geo
+            if int_geo+1 != len_asset_geo_names:
+                object_names += ", "
+
+        self.cache_object_names.setText(object_names)
 
     def query_scene_func(self):
 
         """
-
+        Returns the created assets in the publish folder and which ones you have in the scene.
         :return:
         """
 
@@ -644,7 +700,8 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         try:
             asset_geo_names = self.parent_tree.parent.get_cache_objects_func(asset_name=asset)
         except NameError:
-            print "Uable to set asset for export: {0};".format(asset)
+            err = "Unable to set asset for export: {0};".format(asset)
+            self.parent_tree.parent.print_func(err)
 
         len_asset_geo_names = len(asset_geo_names)
         object_names = ""

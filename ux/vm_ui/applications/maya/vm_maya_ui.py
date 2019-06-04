@@ -4,7 +4,7 @@ from ....vm_ui import vm_base
 from .....application.maya.import_maya import animation
 from .....version import folder
 import utilities
-from maya import cmds
+from maya import cmds, OpenMaya
 
 
 CACHE_SET = "cache_SET"
@@ -26,6 +26,8 @@ def vm_run():
     vm_maya.export_func = partial(export_func)
 
     vm_maya.get_cache_objects_func = partial(get_cacheable_objects)
+    vm_maya.print_func = partial(print_func)
+    vm_maya.get_selection_func = partial(get_selection)
 
     vm_maya()
     vm_maya.show()
@@ -58,6 +60,16 @@ def get_cacheable_objects(asset_name=""):
         cache_objects = list()
 
     return cache_objects
+
+
+def get_selection():
+
+    """
+    Return the selection as a list of strings
+    :return:
+    """
+
+    return cmds.ls(sl=True)
 
 
 def import_func(version_dict, asset, version_number):
@@ -99,3 +111,14 @@ def export_func(version_dict, asset):
     """
 
     version_dict["folder_versions"][asset].verbose = False
+
+
+def print_func(string=""):
+
+    """
+
+    :param string string:
+    :return:
+    """
+
+    OpenMaya.MGlobal.displayInfo(string)

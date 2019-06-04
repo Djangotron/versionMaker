@@ -32,13 +32,16 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.export_func = None
 
         self.get_cache_objects_func = None
+        self.print_func = None
+        self.get_selection_func = None
 
         # copy the hierarchy paths
         self.hierarchy = hierarchy.Hierarchy()
         self.file_dialog = FileDialog()
 
         # Logo
-        vm_logo = icon_path + "version_maker_banner_v01_tenPercent.png"
+        self.icon_path = icon_path
+        vm_logo = self.icon_path + "version_maker_banner_v01_tenPercent.png"
         if is_windows:
             vm_logo = vm_logo.replace(os.sep, "/")
 
