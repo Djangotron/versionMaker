@@ -1,5 +1,6 @@
 import sys, os
 from PySide2 import QtGui, QtCore, QtWidgets, QtUiTools
+from ...constants.film import hierarchy
 from ...lib_vm import images
 from functools import partial
 from ...version import folder, utilities
@@ -67,10 +68,14 @@ class ItemSetup(QtWidgets.QWidget):
         self.task_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         self.task_label_size = QtCore.QSize(50, 25)
         self.task_label.setFixedSize(self.shot_label_size)
+        test = "\n".join(hierarchy.Hierarchy().tasks)
+        task_tip = "Set the task for the:\n\n{}".format(test)
+        self.task_label.setToolTip(task_tip)
 
         self.task_combo_box = QtWidgets.QComboBox()
         self.task_combo_box_size = QtCore.QSize(175, 25)
         self.task_combo_box.setFixedSize(self.task_combo_box_size)
+        self.task_combo_box.setToolTip(task_tip)
 
         self.task_label.setBuddy(self.task_combo_box)
         self.top_row.addWidget(self.task_label)
@@ -613,7 +618,7 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         # Create Asset
         self.export_button = QtWidgets.QPushButton("Export")
         self.export_button.setDefault(True)
-        self.export_button_size = QtCore.QSize(75, 25)
+        self.export_button_size = QtCore.QSize(125, 25)
         self.export_button.setFixedSize(self.export_button_size)
         self.export_button.clicked.connect(self.export_asset)
         self.row.addWidget(self.export_button, QtCore.Qt.AlignLeft)
@@ -621,7 +626,7 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         # Label
         self.asset_label = QtWidgets.QLabel("Scene Nodes:")
         self.asset_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        self.asset_label.setFixedSize(QtCore.QSize(75, 15))
+        self.asset_label.setFixedSize(QtCore.QSize(125, 15))
         self.row.addWidget(self.asset_label, QtCore.Qt.AlignLeft)
 
         # Label
@@ -633,13 +638,13 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         self.row.addWidget(self.cache_object_names, QtCore.Qt.AlignLeft)
 
         self.replace_button = QtWidgets.QPushButton("Get")
-        self.replace_button.setFixedSize(QtCore.QSize(35, 25))
+        self.replace_button.setFixedSize(QtCore.QSize(50, 25))
         self.replace_button.setToolTip("Get a new selection")
         self.replace_button.clicked.connect(self.replace_text)
         self.row.addWidget(self.replace_button, QtCore.Qt.AlignLeft)
 
         self.append_button = QtWidgets.QPushButton("Add")
-        self.append_button.setFixedSize(QtCore.QSize(35, 25))
+        self.append_button.setFixedSize(QtCore.QSize(50, 25))
         self.append_button.setToolTip("Append more objects to a selection")
         self.append_button.clicked.connect(self.append_text)
         self.row.addWidget(self.append_button, QtCore.Qt.AlignLeft)
@@ -647,6 +652,7 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         options_image = self.parent_tree.parent.icon_path + "version_maker__options__v01.png"
 
         self.options_button = QtWidgets.QPushButton(QtGui.QIcon(QtGui.QPixmap(options_image)), "", None)
+        self.options_button.setToolTip("Export settings")
         self.row.addWidget(self.options_button, QtCore.Qt.AlignLeft)
 
         self.row.addStretch()
@@ -702,6 +708,9 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         except NameError:
             err = "Unable to set asset for export: {0};".format(asset)
             self.parent_tree.parent.print_func(err)
+
+        if asset_geo_names is None:
+            return
 
         len_asset_geo_names = len(asset_geo_names)
         object_names = ""

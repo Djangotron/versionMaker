@@ -46,7 +46,7 @@ def get_selection():
     :return:
     """
 
-    return hou.selectedNodes()
+    return [i.path() for i in hou.selectedNodes()]
 
 
 def import_func(version_dict, asset, version_number):
