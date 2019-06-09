@@ -1,7 +1,8 @@
 import os
 from functools import partial
 from ....vm_ui import vm_base
-from .....application.maya.import_maya import animation
+from .....application.maya.import_maya import animation as import_animation
+from .....application.maya.export_maya import animation as export_animation
 from .....version import folder
 import utilities
 from maya import cmds, OpenMaya
@@ -85,7 +86,7 @@ def import_func(version_dict, asset, version_number):
 
     version_dict["folder_versions"][asset].verbose = False
 
-    anim_import = animation.AnimationFilmImport()
+    anim_import = import_animation.AnimationFilmImport()
     anim_import.version = version_dict["folder_versions"][asset]
     anim_import.asset = asset
     anim_import.partition = version_dict["partition"]
@@ -111,6 +112,30 @@ def export_func(version_dict, asset):
     """
 
     version_dict["folder_versions"][asset].verbose = False
+
+    afp = export_animation.AnimationFilmPublish()
+    afp.export_alembic = True
+
+    afp.show_folder_location = "D:/Google Drive/Projects"
+    afp.show_folder = "sol"
+    afp.version = version_dict["folder_versions"][asset]
+    afp.partition = version_dict["partition"]
+    afp.division = version_dict["division"]
+    afp.sequence = version_dict["sequence"]
+    afp.shot = version_dict["shot"]
+    afp.task = version_dict["task"]
+    afp.asset = asset
+
+
+    afp.message = "testing publish"
+    afp.start_frame = frame_number
+    afp.end_frame = frame_number
+    afp.cache_sets = cache_obj
+
+    afp.cache_objects = [cache_obj]
+
+    afp()
+    afp.alembic_cache_write()
 
 
 def print_func(string=""):
