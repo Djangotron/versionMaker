@@ -11,7 +11,7 @@ from maya import cmds, OpenMaya
 CACHE_SET = "cache_SET"
 
 
-def vm_run():
+def vm_run(*args):
 
     """
     Run the versionMaker Ui for Houdini
@@ -27,8 +27,9 @@ def vm_run():
     vm_maya.export_func = partial(export_func)
 
     vm_maya.get_cache_objects_func = partial(get_cacheable_objects)
-    vm_maya.print_func = partial(print_func)
     vm_maya.get_selection_func = partial(get_selection)
+    vm_maya.list_publishable_scene_objects_func = partial(list_publishable_scene_objects)
+    vm_maya.print_func = partial(print_func)
 
     vm_maya()
     vm_maya.show()
@@ -61,6 +62,44 @@ def get_cacheable_objects(asset_name=""):
         cache_objects = list()
 
     return cache_objects
+
+
+def list_publishable_scene_objects():
+
+    """
+    Lists the objects in scene that can be published.
+
+    For Maya, These must be:
+    - have a namespace
+    - have a cache set in the namespace
+
+    :return:
+    """
+
+    cmds.namespace(setNamespace=':')
+    namespaces = cmds.namespaceInfo(listOnlyNamespaces=True, recurse=True)
+
+    return_dict = dict()
+    for namespace in namespaces:
+
+        cache_set_name = "{0}:{1}".format(namespace, CACHE_SET)
+        cache_sets = cmds.ls("{0}:{1}".format(namespace, CACHE_SET))
+        len_cache_sets = len(cache_sets)
+
+        if len_cache_sets > 0:
+            return_dict[namespace] = {"cache_set": cache_set_name}
+
+    return return_dict
+
+
+def return_asset_name_from_dir():
+
+    """
+    Takes the asset, queries if it is referenced.  If it is, it will look to see which asset folder it comes from.
+    :return:
+    """
+
+
 
 
 def get_selection():
@@ -125,7 +164,6 @@ def export_func(version_dict, asset):
     afp.shot = version_dict["shot"]
     afp.task = version_dict["task"]
     afp.asset = asset
-
 
     afp.message = "testing publish"
     afp.start_frame = frame_number

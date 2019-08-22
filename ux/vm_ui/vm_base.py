@@ -19,6 +19,12 @@ class VersionMakerWin(QtWidgets.QWidget):
         Class to import and export version from a window
         """
 
+        # print "name test:", self.__name__
+
+        for entry in QtWidgets.QApplication.allWidgets():
+            if type(entry).__name__ == 'VersionMakerWin':
+                entry.close()
+
         super(VersionMakerWin, self).__init__(parent)
 
         self.setWindowTitle("Version Maker")
@@ -32,8 +38,9 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.export_func = None
 
         self.get_cache_objects_func = None
-        self.print_func = None
         self.get_selection_func = None
+        self.list_publishable_scene_objects_func = None
+        self.print_func = None
 
         # copy the hierarchy paths
         self.hierarchy = hierarchy.Hierarchy()
@@ -323,8 +330,10 @@ class VersionMakerWin(QtWidgets.QWidget):
         for shot_widget in self.shot_widgets:
 
             if _in:
+                shot_widget.create_button_stack.setCurrentWidget(shot_widget.create_empty_label)
                 shot_widget.io_button_stack.setCurrentWidget(shot_widget.import_button)
             else:
+                shot_widget.create_button_stack.setCurrentWidget(shot_widget.create_asset_button)
                 shot_widget.io_button_stack.setCurrentWidget(shot_widget.export_button)
 
             # Get the shot tree of the widget

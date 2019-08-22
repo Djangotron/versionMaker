@@ -4,6 +4,7 @@ from ...constants.film import hierarchy
 from ...lib_vm import images
 from functools import partial
 from ...version import folder, utilities
+import vm_create_asset_dialog
 
 
 ITEM_HEIGHT = 50
@@ -104,11 +105,16 @@ class ItemSetup(QtWidgets.QWidget):
         self.top_row.addSpacerItem(self.spacer_1)
 
         # Create Asset
+        self.create_button_stack = QtWidgets.QStackedWidget()
+        self.top_row.addWidget(self.create_button_stack)
         self.create_asset_button = QtWidgets.QPushButton("Create Asset")
         self.create_asset_button.setDefault(True)
         self.create_asset_button.setFixedSize(QtCore.QSize(75, 25))
-        self.top_row.addWidget(self.create_asset_button, QtCore.Qt.AlignRight)
         self.top_row.addSpacerItem(self.spacer_1)
+
+        self.create_empty_label = QtWidgets.QLabel("")
+        self.create_button_stack.addWidget(self.create_empty_label)
+        self.create_button_stack.addWidget(self.create_asset_button)
 
         # Stacked widget for
         self.io_button_stack = QtWidgets.QStackedWidget()
@@ -170,6 +176,7 @@ class ItemSetup(QtWidgets.QWidget):
         self.task_combo_box.currentIndexChanged.connect(self.shot_tree.version_query)
         self.deselect_button.clicked.connect(self.shot_tree.clearSelection)
         self.select_all_button.clicked.connect(self.shot_tree.selectAll)
+        self.create_asset_button.clicked.connect(self.shot_tree.create_asset)
 
         # Set the size from the child widgets
         self.shot.setSizeHint(self.item_frame.sizeHint())
@@ -245,6 +252,10 @@ class ItemSetup(QtWidgets.QWidget):
         self.parent.sequence_combo_box.currentIndexChanged.disconnect(self.shot_combo_box_query)
         self.shot_combo_box.currentIndexChanged.disconnect(self.task_combo_box_query)
         self.parent.task_default_combo_box.currentIndexChanged.disconnect(self.task_combo_box_query)
+        self.create_asset_button.clicked.disconnect(self.shot_tree.create_asset)
+        # self.shot_tree.create_asset.deleteLater()
+
+        print "disconnections complete"
 
         # Remove self from the parents list of available shot widgets
         self.parent.shot_widgets.pop(self.parent.shot_widgets.index(self))
@@ -370,6 +381,9 @@ class ShotTree(QtWidgets.QTreeWidget):
         self.shot_asset_dict = dict()
         self.asset_version_controls = list()
 
+        self.create_asset_dialog = vm_create_asset_dialog.CreateAsset(self)
+        self.create_asset_dialog.list_publishable_scene_objects_func = self.parent().list_publishable_scene_objects_func
+
         self.item_frame = None
         self.shot_combo_box = None
         self.task_combo_box = None
@@ -393,6 +407,15 @@ class ShotTree(QtWidgets.QTreeWidget):
         self.setSizePolicy(self.size_policy)
 
         self.index = -1
+
+    def create_asset(self):
+
+        """
+        Runs the create asset dialog.
+        :return:
+        """
+
+        self.create_asset_dialog.exec_()
 
     def version_query(self):
 
