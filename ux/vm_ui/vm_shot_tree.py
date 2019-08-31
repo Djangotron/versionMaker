@@ -118,7 +118,7 @@ class ItemSetup(QtWidgets.QWidget):
 
         # Stacked widget for
         self.io_button_stack = QtWidgets.QStackedWidget()
-        self.top_row.addWidget(self.io_button_stack)
+        self.top_row.addWidget(self.io_button_stack, QtCore.Qt.AlignRight)
 
         # Import Selected
         self.import_button = QtWidgets.QPushButton("Import Selected")
@@ -753,7 +753,13 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         :return:
         """
 
-        print "testing! export_asset"
+        version_number = self.avc_verison_box.itemText(self.avc_verison_box.currentIndex())
+
+        self.parent_tree.parent.import_func(
+            version_dict=self.item.ancillary_data,
+            asset=self.item.asset,
+            version_number=version_number
+        )
 
 
 class ImportAssetVersionControlWidget(QtWidgets.QWidget):
