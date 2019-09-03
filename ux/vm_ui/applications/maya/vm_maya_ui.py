@@ -23,13 +23,13 @@ def vm_run(*args):
     if "SHOW" in os.environ:
         vm_maya.job_path = os.environ["SHOW"]
 
-    vm_maya.import_func = partial(import_func)
-    vm_maya.export_func = partial(export_func)
+    vm_maya.import_func = import_func
+    vm_maya.export_func = export_func
 
-    vm_maya.get_cache_objects_func = partial(get_cacheable_objects)
-    vm_maya.get_selection_func = partial(get_selection)
-    vm_maya.list_publishable_scene_objects_func = partial(list_publishable_scene_objects)
-    vm_maya.print_func = partial(print_func)
+    vm_maya.get_cache_objects_func = get_cacheable_objects
+    vm_maya.get_selection_func = get_selection
+    vm_maya.list_publishable_scene_objects_func = list_publishable_scene_objects
+    vm_maya.print_func = print_func
 
     vm_maya()
     vm_maya.show()
@@ -100,8 +100,6 @@ def return_asset_name_from_dir():
     """
 
 
-
-
 def get_selection():
 
     """
@@ -155,24 +153,25 @@ def export_func(version_dict, asset):
     afp = export_animation.AnimationFilmPublish()
     afp.export_alembic = True
 
-    afp.show_folder_location = "D:/Google Drive/Projects"
-    afp.show_folder = "sol"
-    afp.version = version_dict["folder_versions"][asset]
+    afp.show_folder_location = version_dict["show_folder_location"]
+    afp.show_folder = version_dict["show_folder_name"]
     afp.partition = version_dict["partition"]
     afp.division = version_dict["division"]
     afp.sequence = version_dict["sequence"]
     afp.shot = version_dict["shot"]
     afp.task = version_dict["task"]
     afp.asset = asset
+    afp.version = version_dict["folder_versions"][asset]
 
-    afp.message = "testing publish"
-    afp.start_frame = frame_number
-    afp.end_frame = frame_number
-    afp.cache_sets = cache_obj
+    afp.message = ""
+    afp.start_frame = 1001.0
+    afp.end_frame = 1005
+    afp.cache_sets = ""
 
-    afp.cache_objects = [cache_obj]
+    afp.cache_objects = [""]
 
     afp()
+    afp.set_meta_data()
     afp.alembic_cache_write()
 
 

@@ -2,6 +2,10 @@ import sys, os
 from PySide2 import QtCore, QtWidgets
 
 
+width = 450
+height = 450
+
+
 class CreateAsset(QtWidgets.QDialog):
 
     def __init__(self, parent):
@@ -12,11 +16,8 @@ class CreateAsset(QtWidgets.QDialog):
 
         super(CreateAsset, self).__init__(parent)
 
-        self._h = 450
-        self._w = 450
-
-        # self.setMinimumWidth(self._w)
-        # self.setMinimumHeight(self._h)
+        # self.setMinimumWidth(width)
+        # self.setMinimumHeight(height)
         self.setWindowTitle("Create Asset Cache")
 
         self.get_cachable_objects_func = None
@@ -32,10 +33,9 @@ class CreateAsset(QtWidgets.QDialog):
         self.box_layout.addWidget(self.available_names_label)
 
         # List assets
-        self.available_names_list = QtWidgets.QListWidget(self)
+        self.available_names_list = AssetListWidget()
         self.box_layout.addWidget(self.available_names_list)
-        self.available_names_size = QtCore.QSize(self._w, 200)
-        self.available_names_list.setFixedSize(self.available_names_size)
+        self.available_names_list.itemSelectionChanged.connect(self.selection_changed)
 
         # Name of the asset
         self.name_row_layout = QtWidgets.QHBoxLayout(self)
@@ -56,6 +56,26 @@ class CreateAsset(QtWidgets.QDialog):
         self.close_button = QtWidgets.QPushButton("Close")
         self.button_row_layout.addWidget(self.close_button)
         self.close_button.clicked.connect(self.reject)
+
+    def accept(self):
+
+        """
+
+        :return:
+        """
+
+        super(CreateAsset, self).accept()
+
+    def double_click(self, *args):
+
+        """
+        Wrapper for double clicked
+        :param args:
+        :return:
+        """
+
+        self.available_names_list.clearSelection()
+        self.cache_object_names.setText("")
 
     def exec_(self):
 
@@ -79,14 +99,39 @@ class CreateAsset(QtWidgets.QDialog):
         for asset_name, cache_dict in self.publishable_assets_dict.items():
 
             self.publishable_objects.append(asset_name)
-            item = CreateAssetListWidget(asset_name, self.available_names_list)
+            item = QtWidgets.QListWidgetItem(asset_name, self.available_names_list)
+            self.available_names_list.itemDoubleClicked.connect(self.double_click)
+
+    def selection_changed(self):
+
+        """
+        Modifies the line edit to match the selection in the window
+        :return:
+        """
+
+        selected_items = self.available_names_list.selectedItems()
+
+        len_selected_items = len(selected_items)
+        if len_selected_items == 0:
+            return
+
+        line_edit_string = ""
+        for int_item in range(len_selected_items):
+
+            asset_name = self.available_names_list.selectedItems()[int_item].text()
+            line_edit_string += "{}, ".format(asset_name)
+
+        self.cache_object_names.setText(line_edit_string)
 
 
-class CreateAssetListWidget(QtWidgets.QListWidgetItem):
+class AssetListWidget(QtWidgets.QListWidget):
 
-    def __init__(self, *args):
+    def __init__(self):
 
-        super(CreateAssetListWidget, self).__init__(*args)
+        """ Reimplementing class for customization """
+        
+        super(AssetListWidget, self).__init__()
 
-        print "size hint:", self.parent().sizeHint()
-        self.setSizeHint()
+        self.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        self.q_size = QtCore.QSize(width, 200)
+        self.setFixedSize(self.q_size)

@@ -1,10 +1,13 @@
 import sys, os
+from functools import partial
 from PySide2 import QtGui, QtCore, QtWidgets, QtUiTools
 from ...constants.film import hierarchy
 from ...lib_vm import images
 from functools import partial
 from ...version import folder, utilities
+from ...application.maya.export_maya import animation as export_animation
 import vm_create_asset_dialog
+import vm_set_export_variables
 
 
 ITEM_HEIGHT = 50
@@ -31,6 +34,8 @@ class ItemSetup(QtWidgets.QWidget):
         # Import functions are created
         self.import_functions = dict()
 
+        self.shot_folders = list()
+
         # The frame is the widget that can hold the layout
         self.item_frame = QtWidgets.QFrame()
         self.item_frame.setLineWidth(0)
@@ -50,7 +55,6 @@ class ItemSetup(QtWidgets.QWidget):
         self.item_layout.addRow(self.top_row)
 
         # set up the controls
-        # shot
         self.shot_label = QtWidgets.QLabel("Shot:")
         self.shot_label_size = QtCore.QSize(50, 25)
         self.shot_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
@@ -118,7 +122,7 @@ class ItemSetup(QtWidgets.QWidget):
 
         # Stacked widget for
         self.io_button_stack = QtWidgets.QStackedWidget()
-        self.top_row.addWidget(self.io_button_stack, QtCore.Qt.AlignRight)
+        # self.top_row.addWidget(self.io_button_stack, QtCore.Qt.AlignRight)
 
         # Import Selected
         self.import_button = QtWidgets.QPushButton("Import Selected")
@@ -144,6 +148,26 @@ class ItemSetup(QtWidgets.QWidget):
         )
         self.top_row.addSpacerItem(self.expanding_spacer)
 
+        # shot export options
+        self._export_options_dialog_shot = vm_set_export_variables.SetExportVariables(self)
+        self.export_options_stack = QtWidgets.QStackedWidget()
+        self.export_options_stack.setFixedSize(QtCore.QSize(45, 25))
+        self.top_row.addWidget(self.export_options_stack)
+        options_image = self.parent.icon_path + "version_maker__options__v01.png"
+        self.export_options_button = QtWidgets.QPushButton(QtGui.QIcon(QtGui.QPixmap(options_image)), "", None)
+        self.export_options_button.setToolTip("Export global options for the shot.  ")
+        self.export_options_stack.addWidget(self.create_empty_label)
+        self.export_options_stack.addWidget(self.export_options_button)
+        self.export_options_button.clicked.connect(self.export_options)
+
+        self.expanding_spacer_1 = QtWidgets.QSpacerItem(
+            10,
+            25,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding
+        )
+        self.top_row.addSpacerItem(self.expanding_spacer)
+
         # Remove
         self.remove_button = QtWidgets.QPushButton("Remove")
         self.remove_button.setDefault(True)
@@ -155,7 +179,7 @@ class ItemSetup(QtWidgets.QWidget):
         self.parent.sequence_combo_box.currentIndexChanged.connect(self.shot_combo_box_query)
         self.shot_combo_box.currentIndexChanged.connect(self.task_combo_box_query)
         self.parent.task_default_combo_box.currentIndexChanged.connect(self.task_combo_box_query)
-        self.remove_button.clicked.connect(lambda: self.remove_self())
+        self.remove_button.clicked.connect(self.remove_self)
 
         # List Widget Item to add to the parent_list_widget
         self.shot = ShotListWidget(None)
@@ -215,7 +239,8 @@ class ItemSetup(QtWidgets.QWidget):
 
             q_widget_item = self.shot_tree.itemFromIndex(model_index_1)
             q_widget_item_widgets.append(q_widget_item)
-            q_widget_item.version_box.import_asset_version_control.import_asset()
+            import_asset_func = q_widget_item.version_box.import_asset_version_control.import_asset()
+            self.parent.import_queue.append(import_asset_func)
 
     def export_selected(self):
 
@@ -240,7 +265,19 @@ class ItemSetup(QtWidgets.QWidget):
 
             q_widget_item = self.shot_tree.itemFromIndex(model_index_1)
             q_widget_item_widgets.append(q_widget_item)
-            q_widget_item.version_box.export_asset_version_control.export_asset()
+            export_asset_func = q_widget_item.version_box.export_asset_version_control.export_asset()
+            print "testing"
+            if export_asset_func not in self.parent.export_func_queue:
+                self.parent.export_func_queue.append(export_asset_func)
+
+    def export_options(self):
+
+        """
+        Runs the export options dialog box
+        :return:
+        """
+
+        self._export_options_dialog_shot.exec_()
 
     def remove_self(self):
 
@@ -253,13 +290,20 @@ class ItemSetup(QtWidgets.QWidget):
         self.shot_combo_box.currentIndexChanged.disconnect(self.task_combo_box_query)
         self.parent.task_default_combo_box.currentIndexChanged.disconnect(self.task_combo_box_query)
         self.create_asset_button.clicked.disconnect(self.shot_tree.create_asset)
-        # self.shot_tree.create_asset.deleteLater()
-
-        print "disconnections complete"
+        self.shot_tree.clear()
 
         # Remove self from the parents list of available shot widgets
-        self.parent.shot_widgets.pop(self.parent.shot_widgets.index(self))
-        self.parent.data_list.takeItem(self.parent.data_list.row(self.shot))
+        current_index = self.parent.shot_widgets.index(self)
+        self.parent.shot_widgets.pop(current_index)
+
+        # Get the row that we are removing
+        current_row = self.parent.data_list.row(self.shot)
+
+        # Weird errors have happened here.  I think whatever goes into the 'takeItem' command
+        # needs to be composed into a variable and not set as:
+        #       self.parent.data_list.takeItem(self.parent.data_list.row(self.shot))
+        # I have been experiencing random crashes from this command otherwise
+        self.parent.data_list.takeItem(current_row)
 
         # reset the colours
         for i in range(self.parent_list_widget.count()):
@@ -292,18 +336,18 @@ class ItemSetup(QtWidgets.QWidget):
         if not os.path.exists(path):
             return
 
-        folders = list()
+        self.shot_folders = list()
         for item in os.listdir(path):
             item_path = "{0}/{1}".format(path, item)
             if os.path.isfile(item_path):
                 continue
             else:
-                folders.append(item)
+                self.shot_folders.append(item)
 
-        if folders == list():
+        if self.shot_folders == list():
             return
         else:
-            for folder in folders:
+            for folder in self.shot_folders:
                 self.shot_combo_box.addItem(folder)
 
     def task_combo_box_query(self):
@@ -417,6 +461,140 @@ class ShotTree(QtWidgets.QTreeWidget):
 
         self.create_asset_dialog.exec_()
 
+        # Get and format the names for the versions we will create
+        names = self.create_asset_dialog.cache_object_names.text().split(", ")
+        names = [i for i in names if not i == ""]
+
+        self.clear()
+        self.shot_asset_dict = dict()
+        self.asset_version_controls = list()
+
+        show_folder = self.parent.show_text.text()
+        if not os.path.exists(show_folder):
+            return
+
+        show_folder_location, slash, show_folder_name = show_folder.rpartition("/")
+
+        production_folder = self.parent.production_combo_box.itemText(self.parent.production_combo_box.currentIndex())
+        partition_folder = self.parent.partition_combo_box.itemText(self.parent.partition_combo_box.currentIndex())
+        division_folder = self.parent.division_combo_box.itemText(self.parent.division_combo_box.currentIndex())
+        sequence_folder = self.parent.sequence_combo_box.itemText(self.parent.sequence_combo_box.currentIndex())
+
+        shot_folder = self.shot_combo_box.itemText(self.shot_combo_box.currentIndex())
+        task_folder = self.task_combo_box.itemText(self.task_combo_box.currentIndex())
+
+        shot_folder_split = shot_folder.rpartition("__")[2]
+        task_folder_split = task_folder .rpartition("__")[2]
+
+        path = "{0}/{1}/{2}/{3}/{4}/{5}/{6}/{5}__publish/".format(
+            show_folder,
+            production_folder,
+            partition_folder,
+            division_folder,
+            sequence_folder,
+            shot_folder,
+            task_folder,
+        )
+        if not os.path.exists(path):
+            return
+
+        # Set everything to the output dict
+        ancillary_data = {
+            "path": path,
+            "show_folder_location": show_folder_location,
+            "show_folder_name": show_folder_name,
+            "production_folder": production_folder,
+            "partition": partition_folder,
+            "division": division_folder,
+            "sequence": sequence_folder,
+            "shot": shot_folder_split,
+            "task": task_folder_split
+        }
+
+        # List the folders that already exist
+        folders = dict()
+        for item in os.listdir(path):
+            item_path = "{0}{1}".format(path, item)
+            print "\t", item_path
+            if os.path.isfile(item_path):
+                continue
+            else:
+                # get the type name
+                type_folder = folder.return_type_folder(item)
+
+                # Insert the name
+                if type_folder not in folders:
+                    folders[type_folder] = list()
+
+                folders[type_folder].append(item)
+
+        # Create the folders for the assets you are creating
+        for name in names:
+
+            # TODO: Fix this so it is not maya specific
+            afp = export_animation.AnimationFilmPublish()
+            afp.show_folder_location = show_folder_location
+            afp.show_folder = show_folder_name
+            afp.partition = partition_folder
+            afp.division = division_folder
+            afp.sequence = sequence_folder
+            afp.shot = shot_folder_split
+            afp.task = task_folder_split
+            afp.asset = name
+            afp()
+
+            if afp.version.type_folder not in folders:
+                folders[afp.version.type_folder] = list()
+
+            folders[afp.version.type_folder].append(item)
+
+        folder_versions = dict()
+
+        # add top level items to the
+        for type_folder, folder_version_names in sorted(folders.items()):
+
+            # set the name
+            asset_name = type_folder.split("__")[3]
+
+            # create the item
+            item = ShotTaskAssetItem()
+            item.folder_path = path
+            item.asset = asset_name
+            item.type_folder = type_folder
+            item()
+
+            # Return the asset versions
+            folder_versions[asset_name] = item.version_class
+            setattr(item, "ancillary_data", ancillary_data)
+
+            # Set the tree widget
+            item.setText(0, asset_name)
+            self.addTopLevelItem(item)
+
+            # set the version box widget to the frame
+            version_box = AssetVersionControl(self.parent, self, item)
+            version_box.set_widget()
+            asset_version_controls_dict = {asset_name: version_box}
+            self.asset_version_controls.append(asset_version_controls_dict)
+            setattr(item, "version_box", version_box)
+            version_box.export_asset_version_control.query_scene_func()
+
+            # set the size of the item to the size of the frame
+            item.setSizeHint(1, version_box.frame.sizeHint())
+
+            # list in reverse order so the latest versions are listed first
+            for ver in reversed(item.version_class.folder_versions):
+
+                index = item.version_class.folder_versions.index(ver)
+                ver_num = item.version_class.folder_version_numbers[index]
+                version_box.import_asset_version_control.avc_verison_box.addItem(str(ver_num))
+
+        ancillary_data["folder_versions"] = folder_versions
+
+        self.shot_asset_dict[shot_folder] = ancillary_data
+
+        self.parent.import_export_changed()
+
     def version_query(self):
 
         """
@@ -472,7 +650,7 @@ class ShotTree(QtWidgets.QTreeWidget):
 
         folders = dict()
         for item in os.listdir(path):
-            item_path = "{0}/{1}".format(path, item)
+            item_path = "{0}{1}".format(path, item)
             if os.path.isfile(item_path):
                 continue
             else:
@@ -605,7 +783,6 @@ class AssetVersionControl(QtWidgets.QWidget):
         # the layout can hold the widgets
         self.item_layout = QtWidgets.QStackedLayout(self.frame)
         self.item_layout.setSpacing(0)
-        # self.item_layout.setFieldGrowthPolicy(QtWidgets.QFormLayout.ExpandingFieldsGrow)
 
         self.export_asset_version_control = ExportAssetVersionControlWidget(self, self.parent_tree, self.item)
         self.import_asset_version_control = ImportAssetVersionControlWidget(self, self.parent_tree, self.item)
@@ -643,7 +820,7 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         self.export_button.setDefault(True)
         self.export_button_size = QtCore.QSize(125, 25)
         self.export_button.setFixedSize(self.export_button_size)
-        self.export_button.clicked.connect(self.export_asset)
+        self.export_button.clicked.connect(self.export_asset_clicked)
         self.row.addWidget(self.export_button, QtCore.Qt.AlignLeft)
 
         # Label
@@ -672,10 +849,13 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         self.append_button.clicked.connect(self.append_text)
         self.row.addWidget(self.append_button, QtCore.Qt.AlignLeft)
 
+        shot_name = self.parent_tree.shot_combo_box.currentText()
+        asset_name = item.text(0)
+        self._asset_export_options_dialog_shot = vm_set_export_variables.SetAssetExportVariables(self, shot_name, asset_name)
         options_image = self.parent_tree.parent.icon_path + "version_maker__options__v01.png"
-
         self.options_button = QtWidgets.QPushButton(QtGui.QIcon(QtGui.QPixmap(options_image)), "", None)
-        self.options_button.setToolTip("Export settings")
+        self.options_button.setToolTip("Asset export settings")
+        self.options_button.clicked.connect(self.asset_options_button)
         self.row.addWidget(self.options_button, QtCore.Qt.AlignLeft)
 
         self.row.addStretch()
@@ -698,6 +878,15 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
             object_names += geo
 
         self.cache_object_names.setText(object_names)
+
+    def asset_options_button(self):
+
+        """
+
+        :return:
+        """
+
+        self._asset_export_options_dialog_shot.exec_()
 
     def replace_text(self):
 
@@ -749,17 +938,23 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
     def export_asset(self):
 
         """
+        returns a the export function and the necessary arguments to call it.
+        :return:  export func, ancillary_data, asset, version
+        """
 
+        print "item:", self.item.ancillary_data.keys()
+
+        return partial(self.parent_tree.parent.export_func, self.item.ancillary_data, self.item.asset)
+
+    def export_asset_clicked(self):
+
+        """
+        Clicked version for exporting only this asset.
         :return:
         """
 
-        version_number = self.avc_verison_box.itemText(self.avc_verison_box.currentIndex())
-
-        self.parent_tree.parent.import_func(
-            version_dict=self.item.ancillary_data,
-            asset=self.item.asset,
-            version_number=version_number
-        )
+        func = self.export_asset()
+        func()
 
 
 class ImportAssetVersionControlWidget(QtWidgets.QWidget):
@@ -779,7 +974,7 @@ class ImportAssetVersionControlWidget(QtWidgets.QWidget):
         self.item = item
 
         # set up the controls
-        # shot
+        # avc = Asset Version Control
         self.avc_verison_label = QtWidgets.QLabel("Version:")
         self.avc_verison_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         self.avc_verison_label.setFixedSize(QtCore.QSize(75, 15))
@@ -809,7 +1004,7 @@ class ImportAssetVersionControlWidget(QtWidgets.QWidget):
         self.import_button = QtWidgets.QPushButton("Import")
         self.import_button.setDefault(True)
         self.import_button.setFixedSize(QtCore.QSize(75, 25))
-        self.import_button.clicked.connect(self.import_asset)
+        self.import_button.clicked.connect(self.import_asset_clicked)
 
         # STRETCH SPACER
         self.avc_status_spacer = QtWidgets.QSpacerItem(
@@ -839,11 +1034,18 @@ class ImportAssetVersionControlWidget(QtWidgets.QWidget):
         """
 
         version_number = self.avc_verison_box.itemText(self.avc_verison_box.currentIndex())
-        self.parent_tree.parent.import_func(
-            version_dict=self.item.ancillary_data,
-            asset=self.item.asset,
-            version_number=version_number
-        )
+
+        return partial(self.parent_tree.parent.import_func, self.item.ancillary_data, self.item.asset, version_number)
+
+    def import_asset_clicked(self):
+
+        """
+        Click the import button in the shot tree
+        :return:
+        """
+
+        func = self.import_asset()
+        func()
 
 
 class AncillaryDataWidget(QtWidgets.QWidget):

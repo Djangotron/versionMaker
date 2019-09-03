@@ -5,10 +5,20 @@ from functools import partial
 from ...constants.film import hierarchy
 from ...version import utilities
 import vm_shot_tree
+import vm_export_wizard
 
 
 is_windows = sys.platform == "win32"
 icon_path = images.__file__.replace(images.__file__.split("\\")[-1], "")
+
+# Environment keys
+show_env_key = "SHOW"
+partition_env_key = "PARTITION"
+division_env_key = "DVN"
+sequence_env_key = "SEQ"
+shot_env_key = "SHOT"
+task_env_key = "TASK"
+all_keys = [show_env_key, partition_env_key, division_env_key, sequence_env_key, shot_env_key, task_env_key]
 
 
 class VersionMakerWin(QtWidgets.QWidget):
@@ -19,13 +29,15 @@ class VersionMakerWin(QtWidgets.QWidget):
         Class to import and export version from a window
         """
 
-        # print "name test:", self.__name__
-
         for entry in QtWidgets.QApplication.allWidgets():
             if type(entry).__name__ == 'VersionMakerWin':
                 entry.close()
 
         super(VersionMakerWin, self).__init__(parent)
+
+        for env_key in all_keys:
+            if env_key not in os.environ:
+                os.environ[env_key] = ""
 
         self.setWindowTitle("Version Maker")
         self.main_layout = QtWidgets.QVBoxLayout()
@@ -42,11 +54,19 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.list_publishable_scene_objects_func = None
         self.print_func = None
 
+        self.sequence_folders = list()
+        self.shot_folders = list()
+
+        # Append import or export commands to this queue
+        self.import_queue = list()
+        self.export_func_queue = list()
+        self.export_queue = list()
+
         # copy the hierarchy paths
         self.hierarchy = hierarchy.Hierarchy()
         self.file_dialog = FileDialog()
 
-        # Logo
+        # LOGO
         self.icon_path = icon_path
         vm_logo = self.icon_path + "version_maker_banner_v01_tenPercent.png"
         if is_windows:
@@ -87,7 +107,72 @@ class VersionMakerWin(QtWidgets.QWidget):
 
         # GRID LAYOUT FOR PRODUCTION / PARTITION / DIVISION / SEQUENCE
         self.sequence_grid = QtWidgets.QGridLayout()
-        self.add_sequence_box()
+        self.sequence_grid.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
+
+        # Create the labels
+        self.production_label = QtWidgets.QLabel()
+        self.partition_label = QtWidgets.QLabel()
+        self.division_label = QtWidgets.QLabel()
+        self.sequence_label = QtWidgets.QLabel()
+
+        label_row = 0
+        label_row_span = 1
+        label_column_span = 1
+        self.sequence_grid.addWidget(self.production_label, label_row, 0, label_row_span, label_column_span, QtCore.Qt.AlignTop)
+        self.sequence_grid.addWidget(self.partition_label, label_row, 1, label_row_span, label_column_span, QtCore.Qt.AlignTop)
+        self.sequence_grid.addWidget(self.division_label, label_row, 2, label_row_span, label_column_span, QtCore.Qt.AlignTop)
+        self.sequence_grid.addWidget(self.sequence_label, label_row, 3, label_row_span, label_column_span, QtCore.Qt.AlignTop)
+
+        self.format_label(self.production_label, label_name="Production")
+        self.format_label(self.partition_label, label_name="Partition")
+        self.format_label(self.division_label, label_name="Division")
+        self.format_label(self.sequence_label, label_name="Sequence")
+
+        # Set the Actual boxes
+        self.production_combo_box = QtWidgets.QComboBox()
+        self.partition_combo_box = QtWidgets.QComboBox()
+        self.division_combo_box = QtWidgets.QComboBox()
+        self.sequence_combo_box = QtWidgets.QComboBox()
+
+        #
+        combo_box_row = 1
+        self.sequence_grid.addWidget(self.production_combo_box, combo_box_row, 0, label_row_span, label_column_span, QtCore.Qt.AlignTop)
+        self.sequence_grid.addWidget(self.partition_combo_box, combo_box_row, 1, label_row_span, label_column_span, QtCore.Qt.AlignTop)
+        self.sequence_grid.addWidget(self.division_combo_box, combo_box_row, 2, label_row_span, label_column_span, QtCore.Qt.AlignTop)
+        self.sequence_grid.addWidget(self.sequence_combo_box, combo_box_row, 3, label_row_span, label_column_span, QtCore.Qt.AlignTop)
+
+        self.show_text.textChanged.connect(self.production_combo_box_query)
+        self.production_combo_box.currentIndexChanged.connect(self.partition_combo_box_query)
+        self.partition_combo_box.currentIndexChanged.connect(self.division_combo_box_query)
+        self.division_combo_box.currentIndexChanged.connect(self.sequence_combo_box_query)
+
+        # Set a default task
+        self.task_default_label = QtWidgets.QLabel("Current Task")
+        self.task_default_combo_box = QtWidgets.QComboBox()
+        self.sequence_grid.addWidget(self.task_default_label, 2, 0, 1, 1, QtCore.Qt.AlignTop)
+        self.sequence_grid.addWidget(self.task_default_combo_box, 3, 0, 1, 1, QtCore.Qt.AlignTop)
+
+        #
+        self.remove_all_shots_button = QtWidgets.QPushButton("Remove all shots in list")
+        self.create_all_shots_button = QtWidgets.QPushButton("Create all shots in sequence")
+        self.sequence_grid.addWidget(self.remove_all_shots_button, 2, 2, 1, 1, QtCore.Qt.AlignTop)
+        self.sequence_grid.addWidget(self.create_all_shots_button, 3, 2, 1, 1, QtCore.Qt.AlignTop)
+        self.remove_all_shots_button.clicked.connect(self.remove_all_shots)
+        self.create_all_shots_button.clicked.connect(self.append_all_shots)
+
+        # Set a default task
+        self.in_out_label = QtWidgets.QLabel("Import / Export")
+        self.in_out_combo_box = QtWidgets.QComboBox()
+        self.in_out_combo_box.addItem("Import")
+        self.in_out_combo_box.addItem("Export")
+        self.sequence_grid.addWidget(self.in_out_label, 2, 1, 1, 1, QtCore.Qt.AlignTop)
+        self.sequence_grid.addWidget(self.in_out_combo_box, 3, 1, 1, 1, QtCore.Qt.AlignTop)
+        self.in_out_combo_box.currentIndexChanged.connect(self.import_export_changed)
+
+        self.shots_list_label = QtWidgets.QLabel("Shots List:")
+        self.sequence_grid.addWidget(self.shots_list_label, 4, 0, 1, 1, QtCore.Qt.AlignTop)
+
+        self.main_layout.addLayout(self.sequence_grid)
 
         # Setup the current task
         self.defaults_layout = QtWidgets.QHBoxLayout()
@@ -97,15 +182,51 @@ class VersionMakerWin(QtWidgets.QWidget):
 
         # The Ancillary data box
         self.data_list = QtWidgets.QListWidget()
+        # self.data_list.setMinimumHeight(300)
         self.append_shot_button = QtWidgets.QPushButton("Append Shot")
         self.append_shot_button.setMinimumHeight(30)
 
+        # Final row for global IO tools
+        self.final_row = QtWidgets.QHBoxLayout()
+
+        # Stacked widget for
+        self.io_button_stack = QtWidgets.QStackedWidget()
+        self.io_button_stack.setFixedSize(QtCore.QSize(400, 25))
+
+        # Import Selected
+        self.import_all_selected_button = QtWidgets.QPushButton("Import Selected")
+        self.import_all_selected_button.setDefault(True)
+        self.import_all_selected_button.clicked.connect(self.import_selected)
+
+        # Export Selected
+        self.export_all_selected_button = QtWidgets.QPushButton("Export All Selected")
+        self.export_all_selected_button.setDefault(True)
+        self.export_all_selected_button.clicked.connect(self.export_selected)
+
+        # Show Wizard
+        self.show_wizard_button = QtWidgets.QPushButton("Show Export Wizard")
+        self.show_wizard_button.clicked.connect(self.show_export_wizard)
+
+        self.io_button_stack.addWidget(self.import_all_selected_button)
+        self.io_button_stack.addWidget(self.export_all_selected_button)
+
+        self.final_row.addWidget(self.io_button_stack)
+        self.final_row.addWidget(self.show_wizard_button)
+        # self.final_row.addWidget(self.export_all_selected_button)
+
         self.main_layout.addWidget(self.data_list)
+        self.main_layout.addLayout(self.final_row)
+
+        # len_main_layout = self.main_layout.count()
+        # self.main_layout.setStretch(len_main_layout-1, 0)
 
         self.setLayout(self.main_layout)
 
         # List of shots and associated widgets in the list
         self.shot_widgets = list()
+
+        # EXPORT WIZARD
+        self.export_wizard = vm_export_wizard.GetterOuttaHere(self)
 
         # window
         self.resize(1000, 600)
@@ -160,69 +281,6 @@ class VersionMakerWin(QtWidgets.QWidget):
 
         self.main_layout.addLayout(self.job_layout)
 
-    def add_sequence_box(self):
-
-        """
-
-        :return:
-        """
-
-        self.sequence_grid.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
-
-        # Create the labels
-        self.production_label = QtWidgets.QLabel()
-        self.partition_label = QtWidgets.QLabel()
-        self.division_label = QtWidgets.QLabel()
-        self.sequence_label = QtWidgets.QLabel()
-
-        label_row = 0
-        label_row_span = 1
-        label_column_span = 1
-        self.sequence_grid.addWidget(self.production_label, label_row, 0, label_row_span, label_column_span, QtCore.Qt.AlignTop)
-        self.sequence_grid.addWidget(self.partition_label, label_row, 1, label_row_span, label_column_span, QtCore.Qt.AlignTop)
-        self.sequence_grid.addWidget(self.division_label, label_row, 2, label_row_span, label_column_span, QtCore.Qt.AlignTop)
-        self.sequence_grid.addWidget(self.sequence_label, label_row, 3, label_row_span, label_column_span, QtCore.Qt.AlignTop)
-
-        self.format_label(self.production_label, label_name="Production")
-        self.format_label(self.partition_label, label_name="Partition")
-        self.format_label(self.division_label, label_name="Division")
-        self.format_label(self.sequence_label, label_name="Sequence")
-
-        # Set the Actual boxes
-        self.production_combo_box = QtWidgets.QComboBox()
-        self.partition_combo_box = QtWidgets.QComboBox()
-        self.division_combo_box = QtWidgets.QComboBox()
-        self.sequence_combo_box = QtWidgets.QComboBox()
-
-        #
-        combo_box_row = 1
-        self.sequence_grid.addWidget(self.production_combo_box, combo_box_row, 0, label_row_span, label_column_span, QtCore.Qt.AlignTop)
-        self.sequence_grid.addWidget(self.partition_combo_box, combo_box_row, 1, label_row_span, label_column_span, QtCore.Qt.AlignTop)
-        self.sequence_grid.addWidget(self.division_combo_box, combo_box_row, 2, label_row_span, label_column_span, QtCore.Qt.AlignTop)
-        self.sequence_grid.addWidget(self.sequence_combo_box, combo_box_row, 3, label_row_span, label_column_span, QtCore.Qt.AlignTop)
-
-        self.show_text.textChanged.connect(self.production_combo_box_query)
-        self.production_combo_box.currentIndexChanged.connect(self.partition_combo_box_query)
-        self.partition_combo_box.currentIndexChanged.connect(self.division_combo_box_query)
-        self.division_combo_box.currentIndexChanged.connect(self.sequence_combo_box_query)
-
-        # Set a default task
-        self.task_default_label = QtWidgets.QLabel("Current Task")
-        self.task_default_combo_box = QtWidgets.QComboBox()
-        self.sequence_grid.addWidget(self.task_default_label, 2, 0, 1, 1, QtCore.Qt.AlignTop)
-        self.sequence_grid.addWidget(self.task_default_combo_box, 3, 0, 1, 1, QtCore.Qt.AlignTop)
-
-        # Set a default task
-        self.in_out_label = QtWidgets.QLabel("Import / Export")
-        self.in_out_combo_box = QtWidgets.QComboBox()
-        self.in_out_combo_box.addItem("Import")
-        self.in_out_combo_box.addItem("Export")
-        self.sequence_grid.addWidget(self.in_out_label, 2, 3, 1, 1, QtCore.Qt.AlignTop)
-        self.sequence_grid.addWidget(self.in_out_combo_box, 3, 3, 1, 1, QtCore.Qt.AlignTop)
-        self.in_out_combo_box.currentIndexChanged.connect(self.import_export_changed)
-
-        self.main_layout.addLayout(self.sequence_grid)
-
     def append_shot(self):
 
         """
@@ -232,6 +290,31 @@ class VersionMakerWin(QtWidgets.QWidget):
 
         shot = vm_shot_tree.ItemSetup(self.data_list, self)
         self.shot_widgets.append(shot)
+        self.import_export_changed()
+
+    def append_all_shots(self):
+
+        """
+        Add a shot to the data_list
+        :return:
+        """
+
+        self.query_shots()
+
+        current_shots = list()
+        for shot_widget in self.shot_widgets:
+            shot_name = shot_widget.shot_combo_box.currentText()
+            current_shots.append(shot_name)
+
+        for int_shot, shot in enumerate(self.shot_folders):
+
+            if shot in current_shots:
+                continue
+
+            shot_item = vm_shot_tree.ItemSetup(self.data_list, self)
+            shot_item.shot_combo_box.setCurrentIndex(int_shot)
+            self.shot_widgets.append(shot_item)
+            self.import_export_changed()
 
     def clear_combo_box(self, combo_box):
 
@@ -285,6 +368,19 @@ class VersionMakerWin(QtWidgets.QWidget):
 
         self.division_combo_box.setCurrentIndex(default_index)
 
+    def export_selected(self):
+
+        """
+        Exports the selected assets
+        :return:
+        """
+
+        for shot_widget in self.shot_widgets:
+            shot_widget.export_selected()
+
+        self.export_wizard.query_export_queue()
+        self.export_wizard.exec_()
+
     def file_dialog_call(self):
 
         """
@@ -310,6 +406,13 @@ class VersionMakerWin(QtWidgets.QWidget):
 
         label_widget.setText(label_name)
 
+    def import_selected(self):
+
+        """
+        Import the selected assets.
+        :return:
+        """
+
     def import_export_changed(self):
 
         """
@@ -326,15 +429,22 @@ class VersionMakerWin(QtWidgets.QWidget):
         if self.in_out_combo_box.currentIndex() == 1:
             _in = False
 
+        if _in:
+            self.io_button_stack.setCurrentWidget(self.import_all_selected_button)
+        else:
+            self.io_button_stack.setCurrentWidget(self.export_all_selected_button)
+
         # Get the shot widgets
         for shot_widget in self.shot_widgets:
 
             if _in:
                 shot_widget.create_button_stack.setCurrentWidget(shot_widget.create_empty_label)
                 shot_widget.io_button_stack.setCurrentWidget(shot_widget.import_button)
+                shot_widget.export_options_stack.setCurrentWidget(shot_widget.create_empty_label)
             else:
                 shot_widget.create_button_stack.setCurrentWidget(shot_widget.create_asset_button)
                 shot_widget.io_button_stack.setCurrentWidget(shot_widget.export_button)
+                shot_widget.export_options_stack.setCurrentWidget(shot_widget.export_options_button)
 
             # Get the shot tree of the widget
             shot_tree = shot_widget.shot_tree.item_frame.children()[-1]
@@ -428,6 +538,65 @@ class VersionMakerWin(QtWidgets.QWidget):
 
         self.partition_combo_box.setCurrentIndex(default_index)
 
+    def query_shots(self):
+
+        """
+
+        :return:
+        """
+
+        if not os.path.exists(self.show_text.text()):
+            return
+
+        production_folder = self.production_combo_box.itemText(self.production_combo_box.currentIndex())
+        partition_folder = self.partition_combo_box.itemText(self.partition_combo_box.currentIndex())
+        division_folder = self.division_combo_box.itemText(self.division_combo_box.currentIndex())
+        sequence_folder = self.sequence_combo_box.itemText(self.sequence_combo_box.currentIndex())
+
+        path = "{0}/{1}/{2}/{3}/{4}".format(
+            self.show_text.text(), production_folder, partition_folder, division_folder, sequence_folder
+        )
+        if not os.path.exists(path):
+            return
+
+        self.shot_folders = list()
+        for item in os.listdir(path):
+            item_path = "{0}/{1}".format(path, item)
+            if os.path.isfile(item_path):
+                continue
+            else:
+                self.shot_folders.append(item)
+
+    def remove_all_shots(self):
+
+        """
+        Removes each shot from the list by running each shots 'remove_self' command
+        :return:
+        """
+
+        remove_shot_list = self.shot_widgets[::]
+        for int_shot_widget, shot_widget in enumerate(remove_shot_list):
+            shot_widget.remove_self()
+
+    def return_partial_shot_export(self):
+
+        """
+        Reads the export queue partial functions and returns it's sequence, shot and asset for
+        transferring to the export queue.
+
+        :return:
+        """
+
+        self.export_queue = list()
+        for export_func in self.export_func_queue:
+
+            asset_export_dict = dict()
+            asset_export_dict["sequence"] = export_func.args[0]["sequence"]
+            asset_export_dict["shot"] = export_func.args[0]["shot"]
+            asset_export_dict["task"] = export_func.args[0]["task"]
+            asset_export_dict["asset"] = export_func.args[1]
+            self.export_queue.append(asset_export_dict)
+
     def sequence_combo_box_query(self):
 
         """
@@ -448,18 +617,18 @@ class VersionMakerWin(QtWidgets.QWidget):
         if not os.path.exists(path):
             return
 
-        folders = list()
+        self.sequence_folders = list()
         for item in os.listdir(path):
             item_path = "{0}/{1}".format(path, item)
             if os.path.isfile(item_path):
                 continue
             else:
-                folders.append(item)
+                self.sequence_folders.append(item)
 
-        if folders == list():
+        if self.sequence_folders == list():
             return
         else:
-            for folder in folders:
+            for folder in self.sequence_folders:
                 self.sequence_combo_box.addItem(folder)
 
     def setup_append_shot_button(self):
@@ -498,6 +667,15 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.hierarchy.show_folder_path = self.show_text.text()
         self.hierarchy.show_folder_location = show_path
         self.hierarchy.show_folder = show_path
+
+    def show_export_wizard(self):
+
+        """
+        Wrapper for show export wizard
+        :return:
+        """
+
+        self.export_wizard.exec_()
 
 
 class FileDialog(QtWidgets.QFileDialog):

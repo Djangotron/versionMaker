@@ -186,7 +186,7 @@ class AnimationFilmPublish(ExportVersion):
     def __call__(self):
 
         """
-        This will create the verion and it's meta data.
+        This will create the version
         :return:
         """
 
@@ -202,14 +202,21 @@ class AnimationFilmPublish(ExportVersion):
         )
         self.set_asset(asset_name=self.asset, force_create=True)
 
+        # Create the new version
+        self.version.create_version(search_string=self.asset)
+
+    def set_meta_data(self):
+
+        """
+        Create the meta data so we can create
+        :return:
+        """
+
         # set the meta data attributes
         self.meta_data.message = self.message
         self.meta_data.folder_location = self.task_publish_asset_path
         self.meta_data.relative_folder_location = self.relative_task_asset_path()
         self.meta_data.long_name = self.task_publish_asset
-
-        # Create the new version
-        new_version = self.version.create_version(search_string=self.asset)
 
         self.meta_data.version_number = self.version.version
 
@@ -222,15 +229,12 @@ class AnimationFilmPublish(ExportVersion):
         # Set the output data
         self.set_animation_export_variable()
 
-        self.meta_data.version_file_path = new_version
+        self.meta_data.version_file_path = self.version.folder_version_path
         self.meta_data.meta_data_file_name = self.version.folder_version
 
         self.meta_data.meta_data_folder_path = self.version.folder_version_path
 
         self.meta_data.create_file()
-
-        # for key, val in sorted(self.__dict__.items()):
-        #     print "\t", key, ":", val
 
         if self.verbose:
             self.version.print_version()

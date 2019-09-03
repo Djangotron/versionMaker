@@ -37,6 +37,8 @@ class Version(object):
         self.version_prefix = "__v"
         self.version = -1
 
+        self.new_version = True
+
         # Version of data
         self.folder_version_number = ""
         self.folder_version = ""
@@ -123,7 +125,7 @@ class Version(object):
         :return:
         """
 
-        self.set_version(search_string=search_string, new_version=True)
+        self.set_version(search_string=search_string, new_version=self.new_version)
 
         if not os.path.exists(self.folder_version_path):
             os.mkdir(self.folder_version_path)

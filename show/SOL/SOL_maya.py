@@ -98,6 +98,7 @@ def export_layout_for_sequence():
 
             # Call the class to setup the alembic export
             afp()
+            afp.set_meta_data()
             afp.alembic_cache_write()
 
 

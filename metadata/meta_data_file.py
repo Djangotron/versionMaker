@@ -52,6 +52,10 @@ class ReadFile(handler.MetaData):
         if self.meta_data_file_path == "" or not path_exists:
             raise RuntimeError("meta_data_file_path:\n'{0}'\nDoes not exist.\n".format(self.meta_data_folder_path))
 
+        is_file = os.path.isfile(self.meta_data_file_path)
+        if not is_file:
+            raise LookupError("File does not exist, cannot load.")
+
         json_file = open(self.meta_data_file_path)
         self.input_data = json.load(json_file)
         json_file.close()

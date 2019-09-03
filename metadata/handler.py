@@ -103,7 +103,7 @@ class MetaData(object):
 
         # message
         if self.message == "":
-            raise AttributeError("Please set {0}".format(self.message))
+            raise AttributeError("Please set a Message".format(self.message))
         self.output_data["message"] = self.message
 
         # file_location

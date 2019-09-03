@@ -390,7 +390,7 @@ class AlembicCache(object):
                 cmds.setAttr("{0}.originalName".format(descendant), descendant, lock=True, type="string")
 
         if self.use_import_namespace:
-            cmds.namespaceinfo()
+            cmds.namespace(top_transform, exists=True)
 
         self.alembic_heirarchy_top_nodes = cmds.listRelatives(top_transform, children=True)
 
