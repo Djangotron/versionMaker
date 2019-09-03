@@ -815,6 +815,8 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         self.parent_tree = parent_tree
         self.item = item
 
+        self.cache_objects = list()
+
         # Create Asset
         self.export_button = QtWidgets.QPushButton("Export")
         self.export_button.setDefault(True)
@@ -832,8 +834,6 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         # Label
         self.cache_object_names = QtWidgets.QLineEdit()
         self.cache_object_names.setToolTip('Separate objects by a ", " (comma and space)')
-        # self.cache_object_names.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        # self.cache_object_names.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         self.cache_object_names.setFixedSize(QtCore.QSize(400, 25))
         self.row.addWidget(self.cache_object_names, QtCore.Qt.AlignLeft)
 
@@ -943,6 +943,12 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         """
 
         print "item:", self.item.ancillary_data.keys()
+        self.return_cachable_object_names()
+
+        self.item.ancillary_data["message"] = ""
+        self.item.ancillary_data["start_frame"] = 1001.0
+        self.item.ancillary_data["end_frame"] = 1001.0
+        self.item.ancillary_data["cache_objects"] = self.cache_objects
 
         return partial(self.parent_tree.parent.export_func, self.item.ancillary_data, self.item.asset)
 
@@ -955,6 +961,15 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
 
         func = self.export_asset()
         func()
+
+    def return_cachable_object_names(self):
+
+        """
+
+        :return:
+        """
+
+        self.cache_objects = self.cache_object_names.text().replace(" ", "").split(",")
 
 
 class ImportAssetVersionControlWidget(QtWidgets.QWidget):

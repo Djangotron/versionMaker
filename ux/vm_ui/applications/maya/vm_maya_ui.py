@@ -163,12 +163,12 @@ def export_func(version_dict, asset):
     afp.asset = asset
     afp.version = version_dict["folder_versions"][asset]
 
-    afp.message = ""
-    afp.start_frame = 1001.0
-    afp.end_frame = 1005
+    afp.message = version_dict["message"]
+    afp.start_frame = version_dict["start_frame"]
+    afp.end_frame = version_dict["end_frame"]
     afp.cache_sets = ""
 
-    afp.cache_objects = [""]
+    afp.cache_objects = version_dict["cache_objects"]
 
     afp()
     afp.set_meta_data()
