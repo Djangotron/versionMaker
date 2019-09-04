@@ -285,13 +285,17 @@ class AlembicCache(object):
         self.user_attributes = list()
         self.user_attributes_string = str()  # do not use this attr
         self.pre_roll_frame = 1
-        self.start_frame = 1
-        self.end_frame = 10
+        self.start_frame = 1001.0
+        self.end_frame = 1010.0
         self.step = 1
         self.frame_relative_samples = [-0.25, 0.25]
         self.renderable_only = False
         self.write_visibility = True
         self.root_geometries = str()
+
+        # Set to true to use a progress bar for each cache
+        self.use_per_frame_callback = False
+        self.per_frame_callback_command = None
 
         # alembic import nodes
         self.alembic_node = str()
@@ -456,8 +460,12 @@ class AlembicCache(object):
         if self.write_visibility:
             write_visibility = " -writeVisibility"
 
+        per_frame_callback_command = ""
+        if self.use_per_frame_callback:
+            per_frame_callback_command = " -pythonPerFrameCallback print_frame(FRAME)"
+
         self.export_command = \
-            'AbcExport -j{verbose} "-sn -frameRange {start} {end} -uvWrite -dataFormat ogawa -worldSpace{root}{renderable_only}{write_visibility}{user_attributes} -file \\"{file_path}\\""'.format(
+            'AbcExport -j{verbose} "-sn -frameRange {start} {end} -uvWrite -dataFormat ogawa -worldSpace{root}{renderable_only}{write_visibility}{user_attributes}{per_frame_callback_command} -file \\"{file_path}\\""'.format(
                 verbose=verbose,
                 start=self.start_frame,
                 end=self.end_frame,
@@ -465,6 +473,7 @@ class AlembicCache(object):
                 renderable_only=renderable_only,
                 write_visibility=write_visibility,
                 user_attributes=self.user_attributes_string,
+                per_frame_callback_command=per_frame_callback_command,
                 file_path=self.file_path
             )
 
@@ -506,3 +515,8 @@ class AlembicCache(object):
 
         for obj in self.cache_objects:
             self.root_geometries += " -root {0}".format(obj)
+
+
+def print_frame(FRAME):
+
+    print "shitty boing boing", FRAME

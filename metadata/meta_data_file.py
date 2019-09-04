@@ -101,6 +101,9 @@ class WriteFile(handler.MetaData):
 
         self._format_file_name()
 
+        print self.output_data.keys()
+        print self.output_data.values()
+
         with open(self.meta_data_file_path, 'w') as outfile:
             json.dump(self.output_data, outfile)
 

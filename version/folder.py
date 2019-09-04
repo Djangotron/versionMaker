@@ -92,17 +92,8 @@ class Version(object):
         if self.type_folder == "":
             raise AttributeError("'type_folder' has not been set.  Please specify type of data to version.")
 
-        if self.folder_version_number == "":
-
-            if self.version == -1:
-
-                raise AttributeError(
-                    "'folder_version_number' has not been set. #"
-                    "\n# Please set 'version' and run '_set_folder_version_string'."
-                )
-
-            else:
-                self._set_folder_version_string()
+        # Set the file version suffix
+        self._set_folder_version_string()
 
         self.folder_version = "{typeFolder}{version}".format(
             typeFolder=self.type_folder,

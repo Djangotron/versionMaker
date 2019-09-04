@@ -70,14 +70,13 @@ class GetterOuttaHere(QtWidgets.QDialog):
 
         for int_exp, exp in enumerate(self.parent().export_queue):
 
-            print "\t\tshit"
+            id = "{0}_{1}_{2}_{3}".format(exp["sequence"], exp["shot"], exp["task"], exp["asset"])
+
             item = ExportTaskItem(self.shot_asset_list)
             item.exp_task_widget.sequence.setText(exp["sequence"])
             item.exp_task_widget.shot.setText(exp["shot"])
             item.exp_task_widget.task.setText(exp["task"])
             item.exp_task_widget.asset.setText(exp["asset"])
-
-            id = "{0}_{1}_{2}_{3}".format(exp["sequence"], exp["shot"], exp["task"], exp["asset"])
 
     def run(self):
 
@@ -89,14 +88,14 @@ class GetterOuttaHere(QtWidgets.QDialog):
         # # Get all of the items for the list
         # self.query_export_queue()
 
-        print len(self.parent().export_func_queue)
-        print len(self.parent().export_queue)
+        # print len(self.parent().export_func_queue)
+        # print len(self.parent().export_queue)
         for int_exp, exp in enumerate(self.parent().export_queue):
 
-            print int_exp, exp
-            print "\t", dir(self.parent().export_func_queue[int_exp])
-            print "\t", self.parent().export_func_queue[int_exp].func
-            print "\t", self.parent().export_func_queue[int_exp].args
+            # print int_exp, exp
+            # print "\t", dir(self.parent().export_func_queue[int_exp])
+            # print "\t", self.parent().export_func_queue[int_exp].func
+            # print "\t", self.parent().export_func_queue[int_exp].args
             self.parent().export_func_queue[int_exp]()
 
 

@@ -189,7 +189,7 @@ class ItemSetup(QtWidgets.QWidget):
         self.parent_list_widget.insertItem(self.index, self.shot)
 
         # Set up the shot tree widget
-        self.shot_tree = ShotTree(self.parent)
+        self.shot_tree = ShotTree(self.parent, self)
         self.shot_tree.index = self.index
         self.shot_tree.item_frame = self.item_frame
         self.shot_tree.shot_combo_box = self.shot_combo_box
@@ -266,7 +266,7 @@ class ItemSetup(QtWidgets.QWidget):
             q_widget_item = self.shot_tree.itemFromIndex(model_index_1)
             q_widget_item_widgets.append(q_widget_item)
             export_asset_func = q_widget_item.version_box.export_asset_version_control.export_asset()
-            print "testing"
+
             if export_asset_func not in self.parent.export_func_queue:
                 self.parent.export_func_queue.append(export_asset_func)
 
@@ -412,7 +412,7 @@ class ToolBarExport(QtWidgets.QWidget):
 
 class ShotTree(QtWidgets.QTreeWidget):
 
-    def __init__(self, parent):
+    def __init__(self, parent, item_setup_widget):
 
         """
 
@@ -434,6 +434,7 @@ class ShotTree(QtWidgets.QTreeWidget):
 
         # VersionMakerWin
         self.parent = parent
+        self.item_setup_widget = item_setup_widget
         self.setColumnCount(2)
 
         self.shot_box = QtWidgets.QComboBox()
@@ -860,6 +861,8 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
 
         self.row.addStretch()
 
+        self.verbose = False
+
     def append_text(self):
 
         """
@@ -942,12 +945,25 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         :return:  export func, ancillary_data, asset, version
         """
 
-        print "item:", self.item.ancillary_data.keys()
         self.return_cachable_object_names()
 
-        self.item.ancillary_data["message"] = ""
-        self.item.ancillary_data["start_frame"] = 1001.0
-        self.item.ancillary_data["end_frame"] = 1001.0
+        # Use the local - per asset - shot variables
+        export_variables = self.parent_tree.item_setup_widget._export_options_dialog_shot
+        if self._asset_export_options_dialog_shot.use_override_shot_globals_check.isChecked():
+            export_variables = self._asset_export_options_dialog_shot
+
+        start_frame = export_variables.start_frame_row.float_box.value()
+        end_frame = export_variables.end_frame_row.float_box.value()
+        message = export_variables.message_edit.toPlainText()
+
+        if self.verbose:
+            self.parent_tree.parent.print_func(
+                "start frame: {0}\tend frame: {1}".format(start_frame, end_frame)
+            )
+
+        self.item.ancillary_data["message"] = message
+        self.item.ancillary_data["start_frame"] = start_frame
+        self.item.ancillary_data["end_frame"] = end_frame
         self.item.ancillary_data["cache_objects"] = self.cache_objects
 
         return partial(self.parent_tree.parent.export_func, self.item.ancillary_data, self.item.asset)

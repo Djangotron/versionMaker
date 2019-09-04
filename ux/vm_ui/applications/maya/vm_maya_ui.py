@@ -152,6 +152,7 @@ def export_func(version_dict, asset):
 
     afp = export_animation.AnimationFilmPublish()
     afp.export_alembic = True
+    afp.export_master_scene = True
 
     afp.show_folder_location = version_dict["show_folder_location"]
     afp.show_folder = version_dict["show_folder_name"]

@@ -226,14 +226,18 @@ class AnimationFilmPublish(ExportVersion):
             self.maya_output_file_name = self.version.folder_version
             self.alembic_cache_setup()
 
+        if self.export_master_scene:
+            print "master scene save not implemented"
+
+        if self.export_offline_file:
+            print "master scene save not implemented"
+
         # Set the output data
         self.set_animation_export_variable()
 
         self.meta_data.version_file_path = self.version.folder_version_path
         self.meta_data.meta_data_file_name = self.version.folder_version
-
         self.meta_data.meta_data_folder_path = self.version.folder_version_path
-
         self.meta_data.create_file()
 
         if self.verbose:

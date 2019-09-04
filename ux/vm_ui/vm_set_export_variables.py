@@ -110,6 +110,9 @@ class SetAssetExportVariables(QtWidgets.QDialog):
         """
         A UI for setting specific overrides for the exporting assets.
 
+        This should be the same as SetExportVariables because some of the queried attributes in the vm_shot_tree
+        need to query the same variables.
+
         :param <ItemSetup> parent:  parent class of this dialog
         :param <QtWidgets> parent:  Parent widget of this dialog
         :param <string> shot_name:  Name of the shot to display at the top of this dialog
@@ -131,10 +134,10 @@ class SetAssetExportVariables(QtWidgets.QDialog):
 
         self.shot_globals_layout = QtWidgets.QHBoxLayout()
         self.use_shot_globals_label = QtWidgets.QLabel("Override Shot Variables:")
-        self.use_shot_globals_check = QtWidgets.QCheckBox()
-        self.use_shot_globals_check.stateChanged.connect(self.enable_check_box)
+        self.use_override_shot_globals_check = QtWidgets.QCheckBox()
+        self.use_override_shot_globals_check.stateChanged.connect(self.enable_check_box)
         self.shot_globals_layout.addWidget(self.use_shot_globals_label)
-        self.shot_globals_layout.addWidget(self.use_shot_globals_check)
+        self.shot_globals_layout.addWidget(self.use_override_shot_globals_check)
         self.box_layout.addLayout(self.shot_globals_layout)
 
         # Start Frame
@@ -197,7 +200,7 @@ class SetAssetExportVariables(QtWidgets.QDialog):
         :return:
         """
 
-        is_checked = self.use_shot_globals_check.isChecked()
+        is_checked = self.use_override_shot_globals_check.isChecked()
         if is_checked:
             self.start_frame_row.float_box.setEnabled(True)
             self.end_frame_row.float_box.setEnabled(True)
@@ -239,7 +242,7 @@ class SetAssetExportVariables(QtWidgets.QDialog):
         :return:
         """
 
-        return self.use_shot_globals_check.isChecked()
+        return self.use_override_shot_globals_check.isChecked()
 
 
 class LabelFloatRowLayout(QtWidgets.QHBoxLayout):
