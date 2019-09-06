@@ -34,6 +34,16 @@ class SetExportVariables(QtWidgets.QDialog):
         self.box_layout.addLayout(self.end_frame_row)
         self.end_frame_row.float_box.valueChanged.connect(self.end_frame_changed)
 
+        # Relative Frame Samples
+        self.relative_frame_samples = list()
+        self.rel_frame_row = QtWidgets.QHBoxLayout(self)
+        self.box_layout.addLayout(self.rel_frame_row)
+        self.rel_frame_label = QtWidgets.QLabel("Relative Frame Samples:", self)
+        self.rel_frame_row.addWidget(self.rel_frame_label)
+        self.rel_frame_line = QtWidgets.QLineEdit(self)
+        self.rel_frame_line.setText("-0.25, 0.25")
+        self.rel_frame_row.addWidget(self.rel_frame_line)
+
         # Message
         self.message_label = QtWidgets.QLabel("Publish Message:", self)
         self.box_layout.addWidget(self.message_label)
@@ -63,6 +73,8 @@ class SetExportVariables(QtWidgets.QDialog):
         :return:
         """
 
+        self.query_rel_frames()
+
         super(SetExportVariables, self).accept()
 
     def end_frame_changed(self):
@@ -90,6 +102,15 @@ class SetExportVariables(QtWidgets.QDialog):
         self.move(qr.topLeft())
 
         super(SetExportVariables, self).exec_()
+
+    def query_rel_frames(self):
+
+        """
+        Queries the relative frame samples to the list class attribute.
+        :return:
+        """
+
+        self.relative_frame_samples = self.rel_frame_line.text().strip().split()
 
     def start_frame_changed(self):
 
@@ -121,6 +142,8 @@ class SetAssetExportVariables(QtWidgets.QDialog):
 
         super(SetAssetExportVariables, self).__init__(parent)
 
+        self.relative_frame_samples = list()
+
         self.shot_name = shot_name
         self.asset_name = asset_name
 
@@ -146,10 +169,21 @@ class SetAssetExportVariables(QtWidgets.QDialog):
         self.start_frame_row.float_box.valueChanged.connect(self.start_frame_changed)
         self.start_frame_row.float_box.setEnabled(False)
 
+        # End Frame
         self.end_frame_row = LabelFloatRowLayout(self, label="End Frame:")
         self.box_layout.addLayout(self.end_frame_row)
         self.end_frame_row.float_box.valueChanged.connect(self.end_frame_changed)
         self.end_frame_row.float_box.setEnabled(False)
+
+        # Relative Frame Samples
+        self.relative_frame_samples = list()
+        self.rel_frame_row = QtWidgets.QHBoxLayout(self)
+        self.box_layout.addLayout(self.rel_frame_row)
+        self.rel_frame_label = QtWidgets.QLabel("Relative Frame Samples:", self)
+        self.rel_frame_row.addWidget(self.rel_frame_label)
+        self.rel_frame_line = QtWidgets.QLineEdit(self)
+        self.rel_frame_line.setText("-0.25, 0.25")
+        self.rel_frame_row.addWidget(self.rel_frame_line)
 
         # Message
         self.message_label = QtWidgets.QLabel("Publish Message:", self)
@@ -178,6 +212,8 @@ class SetAssetExportVariables(QtWidgets.QDialog):
 
         :return:
         """
+
+        self.query_rel_frames()
 
         super(SetAssetExportVariables, self).accept()
 
@@ -223,6 +259,15 @@ class SetAssetExportVariables(QtWidgets.QDialog):
         self.move(qr.topLeft())
 
         super(SetAssetExportVariables, self).exec_()
+
+    def query_rel_frames(self):
+
+        """
+        Queries the relative frame samples to the list class attribute.
+        :return:
+        """
+
+        self.relative_frame_samples = [float(i) for i in self.rel_frame_line.text().strip().split()]
 
     def start_frame_changed(self):
 

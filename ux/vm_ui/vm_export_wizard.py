@@ -16,6 +16,8 @@ class GetterOuttaHere(QtWidgets.QDialog):
 
         self.setWindowTitle("Version Maker Export Wizard")
 
+        self.ids = list()
+
         # Top level layout
         self.box_layout = QtWidgets.QVBoxLayout(self)
 
@@ -71,12 +73,20 @@ class GetterOuttaHere(QtWidgets.QDialog):
         for int_exp, exp in enumerate(self.parent().export_queue):
 
             id = "{0}_{1}_{2}_{3}".format(exp["sequence"], exp["shot"], exp["task"], exp["asset"])
+            if id in self.ids:
+                continue
+
+            self.ids.append(id)
 
             item = ExportTaskItem(self.shot_asset_list)
             item.exp_task_widget.sequence.setText(exp["sequence"])
             item.exp_task_widget.shot.setText(exp["shot"])
             item.exp_task_widget.task.setText(exp["task"])
             item.exp_task_widget.asset.setText(exp["asset"])
+
+            print "\t", self.parent().export_func_queue[int_exp].args[0].keys()
+
+            print exp.keys()
 
     def run(self):
 
@@ -95,7 +105,7 @@ class GetterOuttaHere(QtWidgets.QDialog):
             # print int_exp, exp
             # print "\t", dir(self.parent().export_func_queue[int_exp])
             # print "\t", self.parent().export_func_queue[int_exp].func
-            # print "\t", self.parent().export_func_queue[int_exp].args
+            print "\t", self.parent().export_func_queue[int_exp].args
             self.parent().export_func_queue[int_exp]()
 
 
@@ -127,6 +137,8 @@ class ExportTaskWidget(QtWidgets.QWidget):
         self.item_layout.addWidget(self.shot)
         self.item_layout.addWidget(self.task)
         self.item_layout.addWidget(self.asset)
+
+        self.progress_bar = QtWidgets.QProgressBar()
 
         self.setLayout(self.item_layout)
 

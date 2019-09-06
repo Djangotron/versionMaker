@@ -288,7 +288,10 @@ class AlembicCache(object):
         self.start_frame = 1001.0
         self.end_frame = 1010.0
         self.step = 1
+
+        self.use_relative_samples = True
         self.frame_relative_samples = [-0.25, 0.25]
+
         self.renderable_only = False
         self.write_visibility = True
         self.root_geometries = str()
@@ -407,9 +410,11 @@ class AlembicCache(object):
         """
 
         try:
-            mel.eval(self.export_command)
+            # mel.eval(self.export_command)
+            cmds.AbcExport(j=self.export_command)
         finally:
-            OpenMaya.MGlobal.displayInfo(self.export_command)
+            # OpenMaya.MGlobal.displayInfo(self.export_command)
+            OpenMaya.MGlobal.displayInfo("cmds.AbcExport(j='{}')".format(self.export_command))
 
     def get_cache_sets(self):
 
@@ -449,6 +454,10 @@ class AlembicCache(object):
         if self.alembic_verbose:
             verbose = " -v"
 
+        verbose = ""
+        if self.alembic_verbose:
+            verbose = "-v "
+
         if self.root_geometries == list():
             raise NameError("No root geometries set.")
 
@@ -460,15 +469,23 @@ class AlembicCache(object):
         if self.write_visibility:
             write_visibility = " -writeVisibility"
 
+        relative_frame_samples = ""
+        if self.use_relative_samples:
+            relative_frame_samples = " -frs {0} -frs {1}".format(
+                self.frame_relative_samples[0],
+                self.frame_relative_samples[1]
+            )
+
         per_frame_callback_command = ""
         if self.use_per_frame_callback:
-            per_frame_callback_command = " -pythonPerFrameCallback print_frame(FRAME)"
+            per_frame_callback_command = " -pfc print_frame(#FRAME#)"
 
         self.export_command = \
-            'AbcExport -j{verbose} "-sn -frameRange {start} {end} -uvWrite -dataFormat ogawa -worldSpace{root}{renderable_only}{write_visibility}{user_attributes}{per_frame_callback_command} -file \\"{file_path}\\""'.format(
+            '{verbose}-sn -frameRange {start} {end}{relative_frame_samples}  -uvWrite -dataFormat ogawa -worldSpace{root}{renderable_only}{write_visibility}{user_attributes}{per_frame_callback_command} -file \"{file_path}\"'.format(
                 verbose=verbose,
                 start=self.start_frame,
                 end=self.end_frame,
+                relative_frame_samples=relative_frame_samples,
                 root=self.root_geometries,
                 renderable_only=renderable_only,
                 write_visibility=write_visibility,

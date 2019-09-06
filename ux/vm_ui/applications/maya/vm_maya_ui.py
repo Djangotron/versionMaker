@@ -143,6 +143,13 @@ def export_func(version_dict, asset):
 
     """
 
+    Use for create progress bar
+    https://www.mail-archive.com/python_inside_maya@googlegroups.com/msg18725.html
+    https://groups.google.com/forum/#!msg/python_inside_maya/V_v3lMnrVME/ooZ8YDFKBAAJ
+
+    https://fredrikaverpil.github.io/2013/10/11/catching-string-from-stdout-with-python/
+
+
     :param dict version_dict:  Dictionary denoting location on disk to use.
     :param string asset:  Name of asset to export
     :return:
@@ -174,6 +181,43 @@ def export_func(version_dict, asset):
     afp()
     afp.set_meta_data()
     afp.alembic_cache_write()
+
+
+class Progress(object):
+
+    def __init__(self):
+
+        """
+        Class to increment progress bars in the export queue
+        """
+
+        self.qt_widget = None
+
+        self.time_changed_id = None
+        self.time_unit_changed_id = None
+        self.call_back_id = None
+
+    def __call__(self):
+
+        """ Set the time changed callback """
+
+        self.call_back_id = OpenMaya.MEventMessage.addEventCallback("timeChanged", self.time_change_update)
+
+    def remove_call_back_id(self):
+
+        OpenMaya.MEventMessage.removeCallback(self.call_back_id)
+
+    def time_change_update(self, *args):
+
+        """
+        Used to update the UI based on the change of frame.
+        :return:
+        """
+
+        print
+        print args[0]
+        print "testing progress with ABC"
+        print cmds.currentTime(query=True)
 
 
 def print_func(string=""):
