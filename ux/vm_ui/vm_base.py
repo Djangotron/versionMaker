@@ -49,6 +49,8 @@ class VersionMakerWin(QtWidgets.QWidget):
         self.import_func = None
         self.export_func = None
 
+        self.progress_bar_class = Progress()
+
         self.get_cache_objects_func = None
         self.get_selection_func = None
         self.list_publishable_scene_objects_func = None
@@ -253,6 +255,9 @@ class VersionMakerWin(QtWidgets.QWidget):
         task_name = hierarchy.Hierarchy().return_task_name()
         set_combo_box(self.task_default_combo_box, task_name.split("__")[-1])
 
+        self.progress_bar_class.create()
+        self.export_wizard.progress_bar_class = self.progress_bar_class
+
         self.append_shot()
 
     def add_job_box(self):
@@ -315,6 +320,22 @@ class VersionMakerWin(QtWidgets.QWidget):
             shot_item.shot_combo_box.setCurrentIndex(int_shot)
             self.shot_widgets.append(shot_item)
             self.import_export_changed()
+
+    def closeEvent(self, event):
+
+        """
+        Wrapper for the close event
+
+        We must clean up the progress bar
+        :return:
+        """
+
+        if self.progress_bar_class is not None:
+            # cannot use has attr https://hynek.me/articles/hasattr/
+            try:
+                self.progress_bar_class.close()
+            finally:
+                None
 
     def clear_combo_box(self, combo_box):
 
@@ -711,3 +732,52 @@ def set_combo_box(combo_box, value):
     index = combo_box.findText(value)
     if index != -1:
         combo_box.setCurrentIndex(index)
+
+
+class Progress(object):
+
+    def __init__(self):
+
+        """
+        Class to increment progress bars in the export queue
+
+        You must reimplement this on a per-DCC basis to link the cache output to the Ui's progress bar.
+
+        This has been designed with maya in mind but should be capable of working for anything else that
+        uses Qt.
+        """
+
+        self.qt_widget = None
+
+        self.time_changed_id = None
+        self.time_unit_changed_id = None
+        self.call_back_id = None
+
+        self.current_frame = 1001.0
+        self.min_frame = 1001
+        self.max_frame = 1002
+
+    def create(self):
+
+        """
+
+        :return:
+        """
+
+    def close(self):
+
+        """
+        Remove the call back
+        :return:
+        """
+
+    def set_widget(self):
+
+        """ Set the time changed callback """
+
+    def update(self, *args):
+
+        """
+        Used to update the UI based on the change of frame.
+        :return:
+        """

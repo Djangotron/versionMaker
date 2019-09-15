@@ -401,15 +401,6 @@ class ItemSetup(QtWidgets.QWidget):
         self.task_combo_box.setCurrentIndex(index)
 
 
-class ToolBarExport(QtWidgets.QWidget):
-
-    def __init__(self):
-
-        """
-        Export Toolbar
-        """
-
-
 class ShotTree(QtWidgets.QTreeWidget):
 
     def __init__(self, parent, item_setup_widget):
@@ -418,6 +409,7 @@ class ShotTree(QtWidgets.QTreeWidget):
 
         A wrapper for common Qt QTree tasks.
         :param QtTreeWidget parent:
+        :param QtTreeWidget item_setup_widget:
         """
 
         super(ShotTree, self).__init__(parent)
@@ -547,6 +539,8 @@ class ShotTree(QtWidgets.QTreeWidget):
             if afp.version.type_folder not in folders:
                 folders[afp.version.type_folder] = list()
 
+            # TODO: Fix this so it is not maya specific
+            print "item broke:", item
             folders[afp.version.type_folder].append(item)
 
         folder_versions = dict()
@@ -952,8 +946,11 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         if self._asset_export_options_dialog_shot.use_override_shot_globals_check.isChecked():
             export_variables = self._asset_export_options_dialog_shot
 
+        export_variables.query_rel_frames()
+
         start_frame = export_variables.start_frame_row.float_box.value()
         end_frame = export_variables.end_frame_row.float_box.value()
+        relative_frame_samples = export_variables.relative_frame_samples
         message = export_variables.message_edit.toPlainText()
 
         if self.verbose:
@@ -964,6 +961,7 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         self.item.ancillary_data["message"] = message
         self.item.ancillary_data["start_frame"] = start_frame
         self.item.ancillary_data["end_frame"] = end_frame
+        self.item.ancillary_data["relative_frame_samples"] = relative_frame_samples
         self.item.ancillary_data["cache_objects"] = self.cache_objects
 
         return partial(self.parent_tree.parent.export_func, self.item.ancillary_data, self.item.asset)
@@ -1077,17 +1075,6 @@ class ImportAssetVersionControlWidget(QtWidgets.QWidget):
 
         func = self.import_asset()
         func()
-
-
-class AncillaryDataWidget(QtWidgets.QWidget):
-
-    def __init__(self):
-
-        """
-        This widget Displays the versions meta data
-        """
-
-        super(AncillaryDataWidget, self).__init__()
 
 
 class ShotVariablesDialog(QtWidgets.QDialog):

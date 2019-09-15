@@ -30,6 +30,7 @@ def vm_run(*args):
     vm_maya.get_selection_func = get_selection
     vm_maya.list_publishable_scene_objects_func = list_publishable_scene_objects
     vm_maya.print_func = print_func
+    vm_maya.progress_bar_class = Progress()
 
     vm_maya()
     vm_maya.show()
@@ -197,27 +198,48 @@ class Progress(object):
         self.time_unit_changed_id = None
         self.call_back_id = None
 
-    def __call__(self):
+        self.current_frame = 1001.0
+        self.min_frame = 1001
+        self.max_frame = 1002
 
-        """ Set the time changed callback """
+    def create(self):
 
-        self.call_back_id = OpenMaya.MEventMessage.addEventCallback("timeChanged", self.time_change_update)
+        """
 
-    def remove_call_back_id(self):
+        :return:
+        """
+
+        self.call_back_id = OpenMaya.MEventMessage.addEventCallback("timeChanged", self.update)
+
+    def close(self):
+
+        """
+        Remove the call back
+        :return:
+        """
 
         OpenMaya.MEventMessage.removeCallback(self.call_back_id)
 
-    def time_change_update(self, *args):
+    def set_widget(self):
+
+        """ Set the time changed callback """
+
+        if hasattr(self.qt_widget, "setRange"):
+            self.qt_widget.setRange(int(self.min_frame), int(self.max_frame))
+        else:
+            raise Exception("Widget: {} does not have attribute setRange".format(self.qt_widget))
+
+    def update(self, *args):
 
         """
         Used to update the UI based on the change of frame.
         :return:
         """
 
-        print
-        print args[0]
-        print "testing progress with ABC"
-        print cmds.currentTime(query=True)
+        print "Progress: Update"
+        print "\t", self.qt_widget
+        if hasattr(self.qt_widget, "setValue"):
+            self.qt_widget.setValue(int(cmds.currentTime(query=True)))
 
 
 def print_func(string=""):

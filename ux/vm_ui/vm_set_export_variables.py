@@ -110,7 +110,7 @@ class SetExportVariables(QtWidgets.QDialog):
         :return:
         """
 
-        self.relative_frame_samples = self.rel_frame_line.text().strip().split()
+        self.relative_frame_samples = [float(i) for i in self.rel_frame_line.text().strip().replace(",", "").split()]
 
     def start_frame_changed(self):
 
@@ -267,7 +267,7 @@ class SetAssetExportVariables(QtWidgets.QDialog):
         :return:
         """
 
-        self.relative_frame_samples = [float(i) for i in self.rel_frame_line.text().strip().split()]
+        self.relative_frame_samples = [float(i) for i in self.rel_frame_line.text().strip().replace(",", "").split()]
 
     def start_frame_changed(self):
 
