@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- http://www.sidefx.com/docs/houdini/basics/config_menus -->
+<mainMenu>
+  <menuBar>
+    <!-- ========================= Test sub menu ========================= -->
+    <subMenu id="versionMaker">
+      <label>Version Maker?</label>
+
+      <scriptItem>
+        <label>  Version Maker!</label>
+          <scriptCode><![CDATA[
+import versionMaker.ux.vm_ui.applications.houdini.vm_hou_ui
+vm = versionMaker.ux.vm_ui.applications.houdini.vm_hou_ui.vm_run()
+            ]]>
+          </scriptCode>
+      </scriptItem>
+
+    </subMenu>
+  </menuBar>
+</mainMenu>
