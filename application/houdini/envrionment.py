@@ -16,7 +16,7 @@ def path_to_path_expression(path="", envrionment_key="JOB"):
 
     key_path = os.environ[envrionment_key]
     if key_path not in path:
-        raise RuntimeError("JOB environment variables path: '{0}'\nNot in path: {1}".format(key_path, self.path))
+        raise RuntimeError("JOB environment variables path: '{0}'\nNot in path: {1}".format(key_path, path))
 
     path_expression = path.replace(key_path, "${0}".format(envrionment_key))
 

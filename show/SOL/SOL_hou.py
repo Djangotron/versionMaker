@@ -95,4 +95,4 @@ def import_layout_for_sequence(sequence="SF", asset="cam"):
 
     # shot_numbers = ["0030"]
     for shot in shot_numbers:
-        import_layout_for_shot(sequence="SF", shot=shot, asset=asset)
+        import_layout_for_shot(sequence=sequence, shot=shot, asset=asset)
