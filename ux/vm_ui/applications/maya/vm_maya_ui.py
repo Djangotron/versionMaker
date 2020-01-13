@@ -30,7 +30,7 @@ def vm_run(*args):
     vm_maya.get_selection_func = get_selection
     vm_maya.list_publishable_scene_objects_func = list_publishable_scene_objects
     vm_maya.print_func = print_func
-    vm_maya.progress_bar_class = Progress()
+    # vm_maya.progress_bar_class = Progress()
 
     vm_maya()
     vm_maya.show()
