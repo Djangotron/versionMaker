@@ -5,9 +5,10 @@ from ...constants.film import hierarchy
 from ...lib_vm import images
 from functools import partial
 from ...version import folder, utilities
-from ...application.maya.export_maya import animation as export_animation
 import vm_create_asset_dialog
 import vm_set_export_variables
+
+from ...application.maya.export_maya import animation as export_animation
 
 
 ITEM_HEIGHT = 50
@@ -452,7 +453,11 @@ class ShotTree(QtWidgets.QTreeWidget):
         :return:
         """
 
+        print "0"
+
         self.create_asset_dialog.exec_()
+
+        print "1"
 
         # Get and format the names for the versions we will create
         names = self.create_asset_dialog.cache_object_names.text().split(", ")
@@ -504,6 +509,8 @@ class ShotTree(QtWidgets.QTreeWidget):
             "task": task_folder_split
         }
 
+        print "2"
+
         # List the folders that already exist
         folders = dict()
         for item in os.listdir(path):
@@ -520,6 +527,8 @@ class ShotTree(QtWidgets.QTreeWidget):
                     folders[type_folder] = list()
 
                 folders[type_folder].append(item)
+
+        print "3"
 
         # Create the folders for the assets you are creating
         for name in names:
@@ -543,10 +552,16 @@ class ShotTree(QtWidgets.QTreeWidget):
             print "item broke:", item
             folders[afp.version.type_folder].append(item)
 
+        print "4"
+
         folder_versions = dict()
+
+        print "ZXC testing"
 
         # add top level items to the
         for type_folder, folder_version_names in sorted(folders.items()):
+
+            print "\t", type_folder, folder_version_names
 
             # set the name
             asset_name = type_folder.split("__")[3]
@@ -584,11 +599,17 @@ class ShotTree(QtWidgets.QTreeWidget):
                 ver_num = item.version_class.folder_version_numbers[index]
                 version_box.import_asset_version_control.avc_verison_box.addItem(str(ver_num))
 
+        print "5"
+
         ancillary_data["folder_versions"] = folder_versions
 
         self.shot_asset_dict[shot_folder] = ancillary_data
 
         self.parent.import_export_changed()
+
+        print "6"
+
+        print "end create asset"
 
     def version_query(self):
 

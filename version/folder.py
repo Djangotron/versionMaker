@@ -161,8 +161,14 @@ class Version(object):
             if has_period:
                 continue
 
+            # At the name should be a per character match in the string name
+            folder_name_split = _folder.split("__")
+            if search_string not in folder_name_split:
+                continue
+
             if search_string:
                 if _folder.find(search_string) != -1:
+
                     if _folder not in self.folder_versions:
                         self.folder_versions.append(_folder)
 

@@ -290,7 +290,7 @@ class AlembicCache(object):
         self.step = 1
 
         self.use_relative_samples = True
-        self.frame_relative_samples = [-0.25, 0.25]
+        self.frame_relative_samples = [-0.25, 0, 0.25]
 
         self.renderable_only = False
         self.write_visibility = True
@@ -471,10 +471,10 @@ class AlembicCache(object):
 
         relative_frame_samples = ""
         if self.use_relative_samples:
-            relative_frame_samples = " -frs {0} -frs {1}".format(
-                self.frame_relative_samples[0],
-                self.frame_relative_samples[1]
-            )
+
+            relative_frame_samples = " "
+            for sample in self.frame_relative_samples:
+                relative_frame_samples += " -frs {0}".format(sample)
 
         per_frame_callback_command = ""
         if self.use_per_frame_callback:

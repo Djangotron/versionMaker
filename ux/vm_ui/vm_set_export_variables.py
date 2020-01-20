@@ -41,7 +41,7 @@ class SetExportVariables(QtWidgets.QDialog):
         self.rel_frame_label = QtWidgets.QLabel("Relative Frame Samples:", self)
         self.rel_frame_row.addWidget(self.rel_frame_label)
         self.rel_frame_line = QtWidgets.QLineEdit(self)
-        self.rel_frame_line.setText("-0.25, 0.25")
+        self.rel_frame_line.setText("-0.25, 0, 0.25")
         self.rel_frame_row.addWidget(self.rel_frame_line)
 
         # Message
