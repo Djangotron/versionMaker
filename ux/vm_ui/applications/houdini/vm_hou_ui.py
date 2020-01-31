@@ -1,8 +1,10 @@
 from ....vm_ui import vm_base
 from functools import partial
 from .....application.houdini.import_hou import animation
+from PySide2 import QtCore, QtGui, QtWidgets
 import utilities
 import hou
+import sys
 
 
 def vm_run():
@@ -12,21 +14,24 @@ def vm_run():
     :return:
     """
 
-    vm_hou = vm_base.VersionMakerWin(parent=utilities.get_houdini_window(), application="houdini")
+    main_window = utilities.get_houdini_window()
+    vm_hou = vm_base.VersionMakerWin(parent=main_window, application="houdini")
+
     vm_hou.job_path = hou.getenv("JOB")
     vm_hou.setStyleSheet(hou.qt.styleSheet())
     vm_hou.setProperty("houdiniStyle", True)
     vm_hou.file_dialog.setStyleSheet(hou.qt.styleSheet())
 
     vm_hou()
-    vm_hou.show()
 
     vm_hou.import_func = partial(import_func)
-    vm_hou.export_func = partial(import_func)
+    vm_hou.export_func = partial(export_func)
 
     vm_hou.get_cache_objects_func = partial(get_cacheable_objects)
     vm_hou.print_func = partial(print_func)
     vm_hou.get_selection_func = partial(get_selection)
+
+    vm_hou.show()
 
     return vm_hou
 
@@ -38,6 +43,8 @@ def get_cacheable_objects(asset_name=""):
     :param string asset_name:
     :return:
     """
+
+    print "\ntesting get_cacheable_objects & asset_name!\n"
 
 
 def get_selection():
@@ -97,3 +104,5 @@ def print_func(string=""):
     :param string string:
     :return:
     """
+
+    hou.ui.displayMessage(string)

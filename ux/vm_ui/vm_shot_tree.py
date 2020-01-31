@@ -7,8 +7,10 @@ from functools import partial
 from ...version import folder, utilities
 import vm_create_asset_dialog
 import vm_set_export_variables
+from ...version.export_version import animation_film
 
-from ...application.maya.export_maya import animation as export_animation
+
+# from ...application.maya.export_maya import animation as export_animation
 
 
 ITEM_HEIGHT = 50
@@ -102,7 +104,7 @@ class ItemSetup(QtWidgets.QWidget):
         self.top_row.addWidget(self.deselect_button, QtCore.Qt.AlignRight)
         self.top_row.addSpacerItem(self.spacer_1)
 
-        # Deselect
+        # select all
         self.select_all_button = QtWidgets.QPushButton("Select All")
         self.select_all_button.setDefault(True)
         self.select_all_button.setFixedSize(QtCore.QSize(75, 25))
@@ -110,7 +112,7 @@ class ItemSetup(QtWidgets.QWidget):
         self.top_row.addSpacerItem(self.spacer_1)
 
         # Create Asset
-        self.create_button_stack = QtWidgets.QStackedWidget()
+        self.create_button_stack = QtWidgets.QStackedWidget(self)
         self.top_row.addWidget(self.create_button_stack)
         self.create_asset_button = QtWidgets.QPushButton("Create Asset")
         self.create_asset_button.setDefault(True)
@@ -122,7 +124,7 @@ class ItemSetup(QtWidgets.QWidget):
         self.create_button_stack.addWidget(self.create_asset_button)
 
         # Stacked widget for
-        self.io_button_stack = QtWidgets.QStackedWidget()
+        self.io_button_stack = QtWidgets.QStackedWidget(self)
         # self.top_row.addWidget(self.io_button_stack, QtCore.Qt.AlignRight)
 
         # Import Selected
@@ -151,15 +153,16 @@ class ItemSetup(QtWidgets.QWidget):
 
         # shot export options
         self._export_options_dialog_shot = vm_set_export_variables.SetExportVariables(self)
-        self.export_options_stack = QtWidgets.QStackedWidget()
+        self.export_options_stack = QtWidgets.QStackedWidget(self)
         self.export_options_stack.setFixedSize(QtCore.QSize(45, 25))
         self.top_row.addWidget(self.export_options_stack)
         options_image = self.parent.icon_path + "version_maker__options__v01.png"
         self.export_options_button = QtWidgets.QPushButton(QtGui.QIcon(QtGui.QPixmap(options_image)), "", None)
         self.export_options_button.setToolTip("Export global options for the shot.  ")
-        self.export_options_stack.addWidget(self.create_empty_label)
+        self.create_empty_label_1 = QtWidgets.QLabel("")
+        self.export_options_stack.addWidget(self.create_empty_label_1)
         self.export_options_stack.addWidget(self.export_options_button)
-        self.export_options_button.clicked.connect(self.export_options)
+        self.export_options_button.clicked.connect(lambda: self.export_options())
 
         self.expanding_spacer_1 = QtWidgets.QSpacerItem(
             10,
@@ -183,7 +186,7 @@ class ItemSetup(QtWidgets.QWidget):
         self.remove_button.clicked.connect(self.remove_self)
 
         # List Widget Item to add to the parent_list_widget
-        self.shot = ShotListWidget(None)
+        self.shot = ShotListWidget()
 
         n_items = self.parent_list_widget.count()
         self.index = n_items - 1
@@ -287,15 +290,15 @@ class ItemSetup(QtWidgets.QWidget):
         :return:
         """
 
-        self.parent.sequence_combo_box.currentIndexChanged.disconnect(self.shot_combo_box_query)
-        self.shot_combo_box.currentIndexChanged.disconnect(self.task_combo_box_query)
-        self.parent.task_default_combo_box.currentIndexChanged.disconnect(self.task_combo_box_query)
-        self.create_asset_button.clicked.disconnect(self.shot_tree.create_asset)
-        self.shot_tree.clear()
-
-        # Remove self from the parents list of available shot widgets
-        current_index = self.parent.shot_widgets.index(self)
-        self.parent.shot_widgets.pop(current_index)
+        # self.parent.sequence_combo_box.currentIndexChanged.disconnect(self.shot_combo_box_query)
+        # self.shot_combo_box.currentIndexChanged.disconnect(self.task_combo_box_query)
+        # self.parent.task_default_combo_box.currentIndexChanged.disconnect(self.task_combo_box_query)
+        # self.create_asset_button.clicked.disconnect(self.shot_tree.create_asset)
+        # self.shot_tree.clear()
+        #
+        # # Remove self from the parents list of available shot widgets
+        # current_index = self.parent.shot_widgets.index(self)
+        # self.parent.shot_widgets.pop(current_index)
 
         # Get the row that we are removing
         current_row = self.parent.data_list.row(self.shot)
@@ -304,15 +307,19 @@ class ItemSetup(QtWidgets.QWidget):
         # needs to be composed into a variable and not set as:
         #       self.parent.data_list.takeItem(self.parent.data_list.row(self.shot))
         # I have been experiencing random crashes from this command otherwise
-        self.parent.data_list.takeItem(current_row)
+        print "\n\ntest1"
+        item = self.parent.data_list.takeItem(current_row)
+        print item
+        print "passed"
+        item.deleteLater()
 
-        # reset the colours
-        for i in range(self.parent_list_widget.count()):
-
-            col = QtGui.QColor(*ORANGE)
-            if i % 2 == 0:
-                col = QtGui.QColor(*BLUE)
-            self.parent_list_widget.item(i).setBackground(QtGui.QBrush(col))
+        # # reset the colours
+        # for i in range(self.parent_list_widget.count()):
+        #
+        #     col = QtGui.QColor(*ORANGE)
+        #     if i % 2 == 0:
+        #         col = QtGui.QColor(*BLUE)
+        #     self.parent_list_widget.item(i).setBackground(QtGui.QBrush(col))
 
     def shot_combo_box_query(self):
 
@@ -533,24 +540,54 @@ class ShotTree(QtWidgets.QTreeWidget):
         # Create the folders for the assets you are creating
         for name in names:
 
-            # TODO: Fix this so it is not maya specific
-            afp = export_animation.AnimationFilmPublish()
-            afp.show_folder_location = show_folder_location
-            afp.show_folder = show_folder_name
-            afp.partition = partition_folder
-            afp.division = division_folder
-            afp.sequence = sequence_folder
-            afp.shot = shot_folder_split
-            afp.task = task_folder_split
-            afp.asset = name
-            afp()
+            eav = animation_film.ExportAnimationVersion()
+            eav.show_folder_location = show_folder_location
+            eav.show_folder = show_folder_name
+            eav.partition = partition_folder
+            eav.division = division_folder
+            eav.sequence = sequence_folder
+            eav.shot = shot_folder_split
+            eav.task = task_folder_split
+            eav.asset = name
 
-            if afp.version.type_folder not in folders:
-                folders[afp.version.type_folder] = list()
+            eav.version.verbose = self.verbose
+
+            # Set the shot and the asset
+            eav.set_shot(
+                partition=partition_folder,
+                division=division_folder,
+                sequence=sequence_folder,
+                shot=shot_folder_split,
+                task=task_folder_split
+            )
+            eav.set_asset(asset_name=name, force_create=True)
+            eav.version.create_version(search_string=name)
+
+            if eav.version.type_folder not in folders:
+                folders[eav.version.type_folder] = list()
 
             # TODO: Fix this so it is not maya specific
             print "item broke:", item
-            folders[afp.version.type_folder].append(item)
+            folders[eav.version.type_folder].append(item)
+
+            # # TODO: Fix this so it is not maya specific
+            # afp = export_animation.AnimationFilmPublish()
+            # afp.show_folder_location = show_folder_location
+            # afp.show_folder = show_folder_name
+            # afp.partition = partition_folder
+            # afp.division = division_folder
+            # afp.sequence = sequence_folder
+            # afp.shot = shot_folder_split
+            # afp.task = task_folder_split
+            # afp.asset = name
+            # afp()
+
+            # if afp.version.type_folder not in folders:
+            #     folders[afp.version.type_folder] = list()
+            #
+            # # TODO: Fix this so it is not maya specific
+            # print "item broke:", item
+            # folders[afp.version.type_folder].append(item)
 
         print "4"
 
@@ -732,7 +769,7 @@ class ShotTree(QtWidgets.QTreeWidget):
 
 class ShotListWidget(QtWidgets.QListWidgetItem):
 
-    def __init__(self, parent):
+    def __init__(self, *args):
 
         """
         A wrapper for the list widget item.
@@ -740,7 +777,7 @@ class ShotListWidget(QtWidgets.QListWidgetItem):
         We need this to insert the shot into the shots list.
         """
 
-        super(ShotListWidget, self).__init__(parent)
+        super(ShotListWidget, self).__init__(*args)
 
         # Make object non selectable
         self.setFlags(QtCore.Qt.NoItemFlags)
@@ -838,7 +875,7 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
         self.export_button.setDefault(True)
         self.export_button_size = QtCore.QSize(125, 25)
         self.export_button.setFixedSize(self.export_button_size)
-        self.export_button.clicked.connect(self.export_asset_clicked)
+        self.export_button.clicked.connect(lambda: self.export_asset_clicked())
         self.row.addWidget(self.export_button, QtCore.Qt.AlignLeft)
 
         # Label
@@ -933,6 +970,7 @@ class ExportAssetVersionControlWidget(QtWidgets.QWidget):
 
         asset = self.item.asset
         asset_geo_names = list()
+        print "\n\nasset:", asset, "\n"
         try:
             asset_geo_names = self.parent_tree.parent.get_cache_objects_func(asset_name=asset)
         except NameError:
@@ -1054,7 +1092,7 @@ class ImportAssetVersionControlWidget(QtWidgets.QWidget):
         self.import_button = QtWidgets.QPushButton("Import")
         self.import_button.setDefault(True)
         self.import_button.setFixedSize(QtCore.QSize(75, 25))
-        self.import_button.clicked.connect(self.import_asset_clicked)
+        self.import_button.clicked.connect(lambda: self.import_asset_clicked())
 
         # STRETCH SPACER
         self.avc_status_spacer = QtWidgets.QSpacerItem(

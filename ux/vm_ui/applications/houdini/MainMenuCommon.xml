@@ -11,6 +11,7 @@
           <scriptCode><![CDATA[
 import versionMaker.ux.vm_ui.applications.houdini.vm_hou_ui
 vm = versionMaker.ux.vm_ui.applications.houdini.vm_hou_ui.vm_run()
+hou.session.vm_hou = vm
             ]]>
           </scriptCode>
       </scriptItem>

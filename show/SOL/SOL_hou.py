@@ -18,7 +18,7 @@ def import_layout_for_shot(sequence="SF", shot="0030", asset="cam", index=0):
     """
 
     afp = import_animation.AnimationFilmImport()
-    afp.show_folder_location = "D:/Google Drive/Projects"
+    afp.show_folder_location = "D:/gDrive/Projects"
     afp.show_folder = "sol"
     afp.partition = "3D"
     afp.division = "sequences"
@@ -45,7 +45,7 @@ def import_layout_for_shot(sequence="SF", shot="0030", asset="cam", index=0):
 
     # setup the output directory
     render_output = export_animation.AnimationFilmPublish()
-    render_output.show_folder_location = "D:/Google Drive/Projects"
+    render_output.show_folder_location = "D:/gDrive/Projects"
     render_output.show_folder = "sol"
     render_output.partition = "3D"
     render_output.division = "sequences"
@@ -86,7 +86,7 @@ def import_layout_for_sequence(sequence="SF", asset="cam"):
     """
 
     iaa = import_animation.AnimationFilmImport()
-    iaa.show_folder_location = "D:/Google Drive/Projects"
+    iaa.show_folder_location = "D:/gDrive/Projects"
     iaa.show_folder = "sol"
     iaa.partition = "3D"
     iaa.division = "sequences"
