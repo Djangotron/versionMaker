@@ -140,7 +140,7 @@ def menu_list_folders(hou_kwargs=None):
     return entries
 
 
-def set_output_picture(parents=[], hou_kwargs=None, out_attrib_name="ar_picture", image_format="EXR"):
+def set_output_picture(parents=[], hou_kwargs=None, out_attrib_name="outPath", image_format="EXR"):
 
     """
 
@@ -154,6 +154,7 @@ def set_output_picture(parents=[], hou_kwargs=None, out_attrib_name="ar_picture"
 
     name = hou_kwargs["parm"].name()
     parm = hou_kwargs["parm"]
+    out_parm = hou_kwargs["node"].parm(out_attrib_name)
     parents_attrib = "_{}Parents".format(name)
     string_attrib = "_{}".format(name)
     node = hou_kwargs["node"]
@@ -170,6 +171,13 @@ def set_output_picture(parents=[], hou_kwargs=None, out_attrib_name="ar_picture"
         _parents_as_str.append(name)
 
     task_name = _parents_as_parm_values[3].split("__")[-1]
+
+    #
+    if _parents_as_parm_values[-1] == "--":
+        if out_parm is not None:
+            out_parm.set("ERROR - No version created yet!")
+
+        return
 
     # create the path to search for versions
     _h = hierarchy.Hierarchy()
@@ -190,7 +198,6 @@ def set_output_picture(parents=[], hou_kwargs=None, out_attrib_name="ar_picture"
     job_path = hou.hscriptExpression("$JOB")
     out_images = out_images.replace(job_path, "$JOB")
 
-    out_parm = hou_kwargs["node"].parm(out_attrib_name)
     if out_parm is not None:
         out_parm.set(out_images)
 
