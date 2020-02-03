@@ -41,6 +41,7 @@ class Hierarchy(object):
         self.task_publish_path = "{shot_path}/{sequence}__{shot}__{task}/{sequence}__{shot}__publish"
 
         self.task_publish_asset_path = "{task_publish_path}/{sequence}__{shot}__{task}__{asset}"
+        self.seq_shot_task_asset_path = "{division_path}/{sequence}/{shot}/{task}/{shot}__publish/{task}__{asset}"
         self.task_publish_asset = "{sequence}__{shot}__{task}__{asset}"
 
         self.environments = []
