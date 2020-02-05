@@ -1,5 +1,6 @@
 from .... import op_sys
 import os
+import hou
 
 
 def parm_names_to_paths(parms=[]):
@@ -50,11 +51,45 @@ def open_explorer(parent_parms=[], hou_kwargs=None):
 
         _parents_as_parms.append(parm)
 
-
     # Convert the string results of the parent attributes into a directory path
     directory = parm_names_to_paths(parms=_parents_as_parms)
 
     # print directory
     op_sys.open_explorer(directory=directory)
+
+
+def return_parents(this_node=hou.node, parents=[]):
+
+    """
+    Given a list of parent parm names, return the parms themselves
+
+    :param hou.node this_node:
+    :param list [str, str....] parents:  Names of parameters on this node
+    :return: dict -
+        {
+        "parms": [...],
+        "parm_values": [...],
+        "names": [...]
+    }
+    """
+
+    _parents_as_parms = list()
+    _parents_as_parm_values = list()
+    _parents_as_str = list()
+    for parent in parents:
+        parm = this_node.parm(parent)
+        val = parm.evalAsString()
+        name = parm.name()
+        _parents_as_parms.append(parm)
+        _parents_as_parm_values.append(val)
+        _parents_as_str.append(name)
+
+    return_dict = {
+        "parms": _parents_as_parms,
+        "parm_values": _parents_as_parm_values,
+        "names": _parents_as_str
+    }
+
+    return return_dict
 
 

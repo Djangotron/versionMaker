@@ -3,10 +3,79 @@ import glob
 import hou
 import common
 from ....constants.film import hierarchy
+from ....application.houdini.export_hou import animation as export_animation
 
 
 menu_child_folders = "menu_child_folders"
 NONE_ENTRIES = ["--", "--"]
+
+
+def create_version(parents=list, hou_kwargs=None):
+
+    """
+    Creates a version of the specified asset and
+
+    :param list [str, str..] parents:  The parent directory to list the contents of
+    :param kwargs hou_kwargs:  Takes the keyword args from a houdini button.
+
+    :return:
+    """
+
+    name = hou_kwargs["parm"].name()
+    parm = hou_kwargs["parm"]
+    node = hou_kwargs["node"]
+
+    _parents = common.return_parents(this_node=node, parents=parents)
+    # print _parents
+    _parents_as_parms = _parents["parms"]
+    _parents_as_parm_values = _parents["parm_values"]
+    _parents_as_str = _parents["names"]
+
+    # We don't know the path location but we know that the last 4 elements in this list
+    # are going to be broken out as the show folder, production, partition, division
+    show_path_split = _parents_as_parm_values[0].split("/")
+    show_location = ""
+    for int_path, _path in enumerate(show_path_split[:-4]):
+        if int_path == 0:
+            show_location += "{}".format(_path)
+        else:
+            show_location += "/{}".format(_path)
+
+    show_folder = show_path_split[-4]
+    partition = show_path_split[-2]
+    division = show_path_split[-1]
+
+    sequence = _parents_as_parm_values[1]
+    shot = _parents_as_parm_values[2].rpartition("__")[2]
+    task = _parents_as_parm_values[3].rpartition("__")[2]
+    asset = _parents_as_parm_values[4]
+    message = _parents_as_parm_values[5]
+    start_frame = _parents_as_parm_values[6]
+    end_frame = _parents_as_parm_values[7]
+
+    # setup the output directory
+    render_output = export_animation.AnimationFilmPublish()
+    render_output.show_folder_location = "D:/gDrive/Projects"
+    render_output.show_folder = show_folder
+    render_output.partition = partition
+    render_output.division = division
+    render_output.sequence = sequence
+    render_output.shot = shot
+    render_output.task = task
+    render_output.asset = asset
+    render_output.message = message
+    render_output.start_frame = start_frame
+    render_output.end_frame = end_frame
+    render_output.meta_data.file_types = ["exr"]
+    render_output()
+
+    # Set the output attribute
+    set_output_picture(
+        parents=parents,
+        hou_kwargs=None,
+        out_attrib_name="outPath",
+        image_format="EXR"
+    )
 
 
 def list_directory_for_entries(directory):
@@ -126,7 +195,6 @@ def menu_list_folders(hou_kwargs=None):
     dir_exists = os.path.exists(directory)
     if not dir_exists:
         return ["--", "--"]
-        # raise Exception("Directory does not exist:\n\t'{0}'".format(directory))
 
     entries = list_directory_for_entries(directory)
 
@@ -152,12 +220,8 @@ def set_output_picture(parents=[], hou_kwargs=None, out_attrib_name="outPath", i
     :return:
     """
 
-    name = hou_kwargs["parm"].name()
-    parm = hou_kwargs["parm"]
-    out_parm = hou_kwargs["node"].parm(out_attrib_name)
-    parents_attrib = "_{}Parents".format(name)
-    string_attrib = "_{}".format(name)
     node = hou_kwargs["node"]
+    out_parm = node.parm(out_attrib_name)
 
     _parents_as_parms = list()
     _parents_as_parm_values = list()
@@ -189,9 +253,10 @@ def set_output_picture(parents=[], hou_kwargs=None, out_attrib_name="outPath", i
         task_name=task_name,
         asset=_parents_as_parm_values[4],
     )
-
-    out_images = "{out_dir}__v{version}__$F4.{frmt}".format(
+    out_images = "{out_dir}__v{version}/{task}__{asset}__$F4.{frmt}".format(
         out_dir=directory,
+        task=_parents_as_parm_values[3],
+        asset=_parents_as_parm_values[4],
         version=_parents_as_parm_values[-1],
         frmt=image_format
     )
@@ -261,7 +326,7 @@ def version_menu_list_folders(hou_kwargs=None):
     for token in rev_found_str:
 
         token_value = token.split("__v")[1]
-        entries.append(token)
+        entries.append(token_value)
         entries.append(token_value)
 
     return entries
