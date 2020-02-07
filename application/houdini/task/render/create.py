@@ -99,6 +99,17 @@ class RenderNode(object):
         # Set the output path
         self.rop_node.parm("ar_picture").set(self.output_path)
 
+    def create_vm_render_node(self, name):
+
+        """
+        Creates a shot node and sets it's vales
+        :return:
+        """
+
+        render_node = hou.node("/out").createNode("RenderNode", name)
+
+        return render_node
+
     def format_output_path(self):
 
         """

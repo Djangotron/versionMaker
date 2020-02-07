@@ -72,9 +72,7 @@ def create_version(parents=list, hou_kwargs=None):
     # Set the output attribute
     set_output_picture(
         parents=parents,
-        hou_kwargs=None,
-        out_attrib_name="outPath",
-        image_format="EXR"
+        hou_kwargs=hou_kwargs
     )
 
 
@@ -208,7 +206,7 @@ def menu_list_folders(hou_kwargs=None):
     return entries
 
 
-def set_output_picture(parents=[], hou_kwargs=None, out_attrib_name="outPath", image_format="EXR"):
+def set_output_picture(parents=[], hou_kwargs=None, out_attrib_name="outPath", image_format="exr"):
 
     """
 
@@ -253,7 +251,7 @@ def set_output_picture(parents=[], hou_kwargs=None, out_attrib_name="outPath", i
         task_name=task_name,
         asset=_parents_as_parm_values[4],
     )
-    out_images = "{out_dir}__v{version}/{task}__{asset}__$F4.{frmt}".format(
+    out_images = "{out_dir}__v{version}/{task}__{asset}.$F4.{frmt}".format(
         out_dir=directory,
         task=_parents_as_parm_values[3],
         asset=_parents_as_parm_values[4],

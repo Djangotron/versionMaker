@@ -96,3 +96,88 @@ def import_layout_for_sequence(sequence="SF", asset="cam"):
     # shot_numbers = ["0030"]
     for shot in shot_numbers:
         import_layout_for_shot(sequence=sequence, shot=shot, asset=asset)
+
+
+def render_sequence(camera_archive="", sequence="EL", task="layout"):
+
+    """
+    Queries an entire sequence and creates the render nodes and renderers for the sequence
+    :param string seq:  The name of the sequence on disk
+    :param string sequence:  The name of the sequence on disk
+    :param string task:  The name of the sequence on disk
+    :return:
+    """
+
+    # turn off the hierarchy
+    bs = camera_archive.parm("buildSubnet")
+    bs.set(0)
+
+    aa = alembic.AlembicArchive()
+    aa.archive = camera_archive
+    aa.update_hierarchy()
+    cameras = aa.return_cameras()
+
+    # print cameras
+
+    cam_dict = dict()
+    for int_cam, cam in enumerate(cameras):
+
+        cam_name = cam.name()
+        name = cam_name
+        if name.find("Shape") != -1:
+            name = name.replace("Shape", "")
+
+        seq_shot = render_create.RenderNode()
+        seq_shot.image_file_type = "exr"
+        seq_shot.camera_path = cam.path()
+
+        name_split = name.split("__")
+        seq = name_split[0]
+        shot = name_split[1]
+        # print shot
+
+        # create arnold node
+        seq_shot.create_arnold(name="arnold_{}".format(name))
+        render_node = seq_shot.create_vm_render_node(name="RenderNode_{}".format(name))
+        seq_shot.rop_node.setInput(0, render_node)
+
+        # must be set in this order
+        # --> seq / shot / task / version
+        # seq
+        render_node.parm("sequence").set(seq)
+
+        # shot
+        mi = render_node.parm("shot").menuItems()
+        shot_index = mi.index(name)
+        render_node.parm("shot").set(shot_index)
+
+        # task
+        mi = render_node.parm("task").menuItems()
+        task_index = mi.index("{0}__{1}".format(name, task))
+        render_node.parm("task").set(task_index)
+
+        frame = 1001 + int_cam
+        render_node.parm("frx").set(frame)
+        render_node.parm("fry").set(frame)
+
+        render_node.parm("set").pressButton()
+        render_node.parm("usetheforce").set(1)
+        render_node.parm("message").set("Initial version")
+
+        # expressions
+        seq_shot.rop_node.parm("ar_picture").setExpression('`chs("../{}/outPath")`'.format(render_node))
+        seq_shot.rop_node.parm("f1").setExpression('ch("../{}/frx")'.format(render_node))
+        seq_shot.rop_node.parm("f2").setExpression('ch("../{}/fry")'.format(render_node))
+
+        cam_dict[cam] = {
+            'arnold': seq_shot.rop_node,
+            'renderNode': render_node
+        }
+
+    merge = render_create.create_render_merge(name="merge_{}".format(sequence))
+
+    for int_cam, cam in enumerate(cameras):
+
+        merge.setInput(int_cam, cam_dict[cam]["arnold"])
+
+    return merge, cam_dict
