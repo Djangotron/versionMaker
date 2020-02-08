@@ -1,3 +1,4 @@
+import hou
 from ...application.houdini.export_hou import animation as export_animation
 from ...application.houdini.import_hou import animation as import_animation
 from ...application.houdini.task.render import create as render_create
@@ -98,11 +99,11 @@ def import_layout_for_sequence(sequence="SF", asset="cam"):
         import_layout_for_shot(sequence=sequence, shot=shot, asset=asset)
 
 
-def render_sequence(camera_archive="", sequence="EL", task="layout"):
+def render_sequence(camera_archive=hou.node, sequence="EL", task="layout"):
 
     """
     Queries an entire sequence and creates the render nodes and renderers for the sequence
-    :param string seq:  The name of the sequence on disk
+    :param hou.node camera_archive:  the camera
     :param string sequence:  The name of the sequence on disk
     :param string task:  The name of the sequence on disk
     :return:
@@ -133,8 +134,6 @@ def render_sequence(camera_archive="", sequence="EL", task="layout"):
 
         name_split = name.split("__")
         seq = name_split[0]
-        shot = name_split[1]
-        # print shot
 
         # create arnold node
         seq_shot.create_arnold(name="arnold_{}".format(name))
@@ -156,6 +155,9 @@ def render_sequence(camera_archive="", sequence="EL", task="layout"):
         task_index = mi.index("{0}__{1}".format(name, task))
         render_node.parm("task").set(task_index)
 
+        # version
+        render_node.parm("version").set(1)
+
         frame = 1001 + int_cam
         render_node.parm("frx").set(frame)
         render_node.parm("fry").set(frame)
@@ -165,7 +167,7 @@ def render_sequence(camera_archive="", sequence="EL", task="layout"):
         render_node.parm("message").set("Initial version")
 
         # expressions
-        seq_shot.rop_node.parm("ar_picture").setExpression('`chs("../{}/outPath")`'.format(render_node))
+        seq_shot.rop_node.parm("ar_picture").setExpression('chs("../{}/outPath")'.format(render_node))
         seq_shot.rop_node.parm("f1").setExpression('ch("../{}/frx")'.format(render_node))
         seq_shot.rop_node.parm("f2").setExpression('ch("../{}/fry")'.format(render_node))
 

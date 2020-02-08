@@ -7,11 +7,20 @@
       <label>Version Maker?</label>
 
       <scriptItem>
-        <label>  Version Maker!</label>
+        <label>  Version Maker</label>
           <scriptCode><![CDATA[
 import versionMaker.ux.vm_ui.applications.houdini.vm_hou_ui
 vm = versionMaker.ux.vm_ui.applications.houdini.vm_hou_ui.vm_run()
 hou.session.vm_hou = vm
+            ]]>
+          </scriptCode>
+      </scriptItem>
+
+      <scriptItem>
+        <label>  Create Sequence ROP OUT</label>
+          <scriptCode><![CDATA[
+import versionMaker.ux.vm_ui.applications.houdini.render_sequence_ui
+rs_ui = versionMaker.ux.vm_ui.applications.houdini.render_sequence_ui.show_window()
             ]]>
           </scriptCode>
       </scriptItem>

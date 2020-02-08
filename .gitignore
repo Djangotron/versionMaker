@@ -31,6 +31,11 @@ wheels/
 *.egg
 MANIFEST
 
+# houdini HDA backups
+hda/backup/
+*_bak*.hdalc
+
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.

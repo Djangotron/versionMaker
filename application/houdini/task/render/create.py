@@ -122,7 +122,6 @@ class RenderNode(object):
 
         formatted_path = envrionment.path_to_path_expression(path=self.output_directory, envrionment_key="JOB")
         self.output_path = "{0}/{1}.$F.{2}".format(formatted_path, self.output_name, self.image_file_type)
-        print "\ttest:", self.output_path
 
     def set_camera(self):
 
