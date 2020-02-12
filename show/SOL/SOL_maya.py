@@ -18,7 +18,7 @@ def export_layout_for_sf_sequence():
         afp = export_animation.AnimationFilmPublish()
         afp.export_alembic = True
 
-        afp.show_folder_location = "D:/gDrive/Projects"
+        afp.show_folder_location = "D:/Google Drive/Projects"
         afp.show_folder = "sol"
         afp.partition = "3D"
         afp.division = "sequences"
@@ -80,7 +80,7 @@ def export_layout_for_sequence():
             afp = export_animation.AnimationFilmPublish()
             afp.export_alembic = True
 
-            afp.show_folder_location = "D:/gDrive/Projects"
+            afp.show_folder_location = "D:/Google Drive/Projects"
             afp.show_folder = "sol"
             afp.partition = "3D"
             afp.division = "sequences"
@@ -115,7 +115,7 @@ def import_layout_for_shot(sequence="SF", shot="0030", asset=""):
     """
 
     afp = import_animation.AnimationFilmImport()
-    afp.show_folder_location = "D:/gDrive/Projects"
+    afp.show_folder_location = "D:/Google Drive/Projects"
     afp.show_folder = "sol"
     afp.partition = "3D"
     afp.division = "sequences"
