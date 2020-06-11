@@ -88,6 +88,7 @@ class RenderNode(object):
         self.rop_node.parm("f1").set(self.start_frame)
         self.rop_node.parm("f2").set(self.end_frame)
         self.rop_node.parm("trange").set(1)
+        self.rop_node.parm("trange").set(1)
 
         if self.image_file_type in self._image_file_types:
             self.rop_node.parm("ar_picture_format").set(self.image_file_type)

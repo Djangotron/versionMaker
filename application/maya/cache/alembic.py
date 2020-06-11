@@ -410,9 +410,11 @@ class AlembicCache(object):
         """
 
         try:
+            mel.eval("paneLayout -e -manage false $gMainPane")
             # mel.eval(self.export_command)
             cmds.AbcExport(j=self.export_command)
         finally:
+            mel.eval("paneLayout -e -manage true $gMainPane")
             # OpenMaya.MGlobal.displayInfo(self.export_command)
             OpenMaya.MGlobal.displayInfo("cmds.AbcExport(j='{}')".format(self.export_command))
 
