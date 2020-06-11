@@ -5,6 +5,10 @@ A repository to create versions of any type of asset.
 
 This is designed to be used with arbitrary projects however its initially designed for film.
 
+I've made this public because I have not been working on it in recent months and thought there is no reason I should 
+not share it.  The intent is to share it for learning & giving back to the community of Maya, Houdini, and pipeline 
+developers who I have learned so much from online.  Hopefully this can help someone in some way in the future.
+
 
 # Instructions
 
