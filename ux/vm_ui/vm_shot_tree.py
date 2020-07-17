@@ -304,7 +304,7 @@ class ItemSetup(QtWidgets.QWidget):
         # needs to be composed into a variable and not set as:
         #       self.parent.data_list.takeItem(self.parent.data_list.row(self.shot))
         # I have been experiencing random crashes from this command otherwise
-        self.parent.data_list.takeItem(current_row)
+        # self.parent.data_list.takeItem(current_row)
 
         # reset the colours
         for i in range(self.parent_list_widget.count()):
